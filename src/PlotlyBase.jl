@@ -104,4 +104,15 @@ export
     end
 end
 
+# jupyterlab integration
+@require IJulia begin
+    function IJulia.display_dict(p::Plot)
+        Dict(
+            "application/vnd.plotly.v1+json" => JSON.lower(p),
+            "text/plain" => sprint(show, "text/plain", p)
+        )
+    end
+end
+
+
 end # module
