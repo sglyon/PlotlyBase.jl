@@ -3,7 +3,7 @@
     @test isnull(PlotlyBase._recession_band_shapes(p1))
 
     _path = joinpath(@__DIR__, "data", "us_manu_unemp.csv")
-    _with_dates_raw = readdlm(_path)
+    _with_dates_raw = readdlm(_path, ',')
     with_dates = _with_dates_raw[2:end, :]
     with_dates[:, 1] = map(Date, with_dates[:, 1])
 
