@@ -41,6 +41,18 @@ end
 
 Base.show(io::IO, p::Plot) = show(io, MIME("text/plain"), p)
 
+function savefig(p::Plot, fn::AbstractString)
+    suf = split(fn, ".")[end]
+    if suff == "json"
+        open(f -> print(f, json(p)), fn, "w")
+        return p
+    else
+        msg = "PlotlyBase can only save figures as JSON. For all other"
+        msg *= " file types, please use PlotlyJS.jl"
+        throw(ArgumentError(msg))
+    end
+end
+
 # include the rest of the core parts of the package
 include("util.jl")
 include("json.jl")
@@ -94,7 +106,10 @@ export
     init_notebook,
 
     # styles
-    use_style!, style, Style, Cycler
+    use_style!, style, Style, Cycler,
+
+    # other
+    savefig
 
 @init begin
     env_style = Symbol(get(ENV, "PLOTLYJS_STYLE", ""))

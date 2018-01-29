@@ -1,5 +1,17 @@
-using PlotlyBase
+module PlotlyBaseTest
+using TestSetExtensions
+
 using Base.Test
 
-# write your own tests here
-@test 1 == 2
+using PlotlyBase
+const M = PlotlyBase
+
+try
+    @testset ExtendedTestSet "PlotlyJS Tests" begin
+        @includetests ARGS
+    end
+catch
+    exit(-1)
+end
+
+end
