@@ -119,7 +119,8 @@ export
     end
 end
 
-# jupyterlab integration
+# jupyterlab/nteract integration
+Base.istextmime(::MIME"application/vnd.plotly.v1+json") = true
 @require IJulia begin
     function IJulia.display_dict(p::Plot)
         Dict(
