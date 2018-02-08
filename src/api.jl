@@ -207,7 +207,8 @@ restyle!(p, 1, marker_color=(["red", "green"],))
 # sets marker color on trace 3 to ["red", "green"]
 restyle!(p, 1:3, marker_color=(["red", "green"], "blue"))
 ```
-""" restyle!
+""" 
+restyle!
 
 function update!(
         p::Plot, ind::Union{AbstractVector{Int},Int},
