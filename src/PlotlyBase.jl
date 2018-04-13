@@ -42,8 +42,8 @@ end
 Base.show(io::IO, p::Plot) = show(io, MIME("text/plain"), p)
 
 function savefig(p::Plot, fn::AbstractString)
-    suf = split(fn, ".")[end]
-    if suff == "json"
+    ext = split(fn, ".")[end]
+    if ext == "json"
         open(f -> print(f, json(p)), fn, "w")
         return p
     else

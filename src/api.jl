@@ -8,7 +8,7 @@ prep_kwargs(pairs::AbstractVector) = Dict(map(prep_kwarg, pairs))
 prep_kwargs(pairs::Associative) = Dict(prep_kwarg((k, v)) for (k, v) in pairs)
 
 """
-`size(::PlotlyBase.Plot)`
+    size(::PlotlyBase.Plot)
 
 Return the size of the plot in pixels. Obtained from the `layout.width` and
 `layout.height` fields.
@@ -109,7 +109,7 @@ function _update_fields(hf::GenericTrace, i::Int, update::Dict=Dict(); kwargs...
 end
 
 """
-`relayout!(l::Layout, update::Associative=Dict(); kwargs...)`
+    relayout!(l::Layout, update::Associative=Dict(); kwargs...)
 
 Update `l` using update dict and/or kwargs
 """
@@ -122,7 +122,7 @@ function relayout!(l::Layout, update::Associative=Dict(); kwargs...)
 end
 
 """
-`relayout!(p::Plot, update::Associative=Dict(); kwargs...)`
+    relayout!(p::Plot, update::Associative=Dict(); kwargs...)
 
 Update `p.layout` on using update dict and/or kwargs
 """
@@ -130,7 +130,7 @@ relayout!(p::Plot, update::Associative=Dict(); kwargs...) =
     relayout!(p.layout, update; kwargs...)
 
 """
-`restyle!(gt::GenericTrace, i::Int=1, update::Associative=Dict(); kwargs...)`
+    restyle!(gt::GenericTrace, i::Int=1, update::Associative=Dict(); kwargs...)
 
 Update trace `gt` using dict/kwargs, assuming it was the `i`th ind in a call
 to `restyle!(::Plot, ...)`
@@ -139,7 +139,7 @@ restyle!(gt::GenericTrace, i::Int=1, update::Associative=Dict(); kwargs...) =
     _update_fields(gt, i, update; kwargs...)
 
 """
-`restyle!(p::Plot, ind::Int=1, update::Associative=Dict(); kwargs...)`
+    restyle!(p::Plot, ind::Int=1, update::Associative=Dict(); kwargs...)
 
 Update `p.data[ind]` using update dict and/or kwargs
 """
@@ -147,7 +147,7 @@ restyle!(p::Plot, ind::Int, update::Associative=Dict(); kwargs...) =
     restyle!(p.data[ind], 1, update; kwargs...)
 
 """
-`restyle!(::Plot, ::AbstractVector{Int}, ::Associative=Dict(); kwargs...)`
+    restyle!(::Plot, ::AbstractVector{Int}, ::Associative=Dict(); kwargs...)
 
 Update specific traces at `p.data[inds]` using update dict and/or kwargs
 """
@@ -167,14 +167,14 @@ function restyle!(p::Plot, inds::AbstractVector{Int},
 end
 
 """
-`restyle!(p::Plot, update::Associative=Dict(); kwargs...)`
+    restyle!(p::Plot, update::Associative=Dict(); kwargs...)
 
 Update all traces using update dict and/or kwargs
 """
 restyle!(p::Plot, update::Associative=Dict(); kwargs...) =
     restyle!(p, 1:length(p.data), update; kwargs...)
 
-@doc """
+"""
 The `restyle!` method follows the semantics of the `Plotly.restyle` function in
 plotly.js. Specifically the following rules are applied when trying to set
 an attribute `k` to a value `v` on trace `ind`, which happens to be the `i`th
@@ -207,7 +207,8 @@ restyle!(p, 1, marker_color=(["red", "green"],))
 # sets marker color on trace 3 to ["red", "green"]
 restyle!(p, 1:3, marker_color=(["red", "green"], "blue"))
 ```
-""" restyle!
+""" 
+restyle!
 
 function update!(
         p::Plot, ind::Union{AbstractVector{Int},Int},
@@ -295,24 +296,38 @@ julia> print(json(p, 2))
 """
 update!
 
-"Add trace(s) to the end of the Plot's array of data"
+"""
+    addtraces!(p::Plot, traces::AbstractTrace...)
+
+Add trace(s) to the end of the Plot's array of data
+"""
 addtraces!(p::Plot, traces::AbstractTrace...) = push!(p.data, traces...)
 
 """
+    addtraces!(p::Plot, i::Int, traces::AbstractTrace...)
+
 Add trace(s) at a specified location in the Plot's array of data.
 
-The new traces will start at index `p.data[where]`
+The new traces will start at index `p.data[i]`
 """
-function addtraces!(p::Plot, where::Int, traces::AbstractTrace...)
-    new_data = vcat(p.data[1:where-1], traces..., p.data[where:end])
+function addtraces!(p::Plot, i::Int, traces::AbstractTrace...)
+    new_data = vcat(p.data[1:i-1], traces..., p.data[i:end])
     p.data = new_data
 end
 
-"Remove the traces at the specified indices"
+"""
+    deletetraces!(p::Plot, inds::Int...) =
+
+Remove the traces at the specified indices
+"""
 deletetraces!(p::Plot, inds::Int...) =
     (p.data = p.data[setdiff(1:length(p.data), inds)])
 
-"Move one or more traces to the end of the data array"
+"""
+    movetraces!(p::Plot, to_end::Int...)
+
+Move one or more traces to the end of the data array"
+"""
 movetraces!(p::Plot, to_end::Int...) =
     (p.data = p.data[vcat(setdiff(1:length(p.data), to_end), to_end...)])
 
@@ -323,6 +338,8 @@ function _move_one!(x::AbstractArray, from::Int, to::Int)
 end
 
 """
+    movetraces!(p::Plot, src::AbstractVector{Int}, dest::AbstractVector{Int})
+
 Move traces from indices `src` to indices `dest`.
 
 Both `src` and `dest` must be `Vector{Int}`
@@ -344,7 +361,7 @@ _tovec(v) = _tovec([v])
 _tovec(v::Vector) = eltype(v) <: Vector ? v : Vector[v]
 
 """
-`extendtraces!(::Plot, ::Dict{Union{Symbol,AbstractString},Vector{Vector{Any}}}), indices, maxpoints)`
+    extendtraces!(::Plot, ::Dict{Union{Symbol,AbstractString},Vector{Vector{Any}}}), indices, maxpoints)
 
 Extend one or more traces with more data. A few notes about the structure of the
 update dict are important to remember:
@@ -386,6 +403,9 @@ function extendtraces!(p::Plot, update::Associative, indices::Vector{Int}=[1],
 end
 
 """
+    prependtraces!(p::Plot, update::Associative, indices::Vector{Int}=[1],
+                    maxpoints=-1)
+                    
 The API for `prependtraces` is equivalent to that for `extendtraces` except that
 the data is added to the front of the traces attributes instead of the end. See
 Those docstrings for more information
