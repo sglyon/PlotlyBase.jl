@@ -60,6 +60,7 @@ include("subplots.jl")
 include("api.jl")
 include("convenience_api.jl")
 @require DataFrames include("dataframes_api.jl")
+@require Distributions include("distributions.jl")
 include("recession_bands.jl")
 
 # Set some defaults for constructing `Plot`s
