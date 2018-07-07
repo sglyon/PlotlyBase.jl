@@ -8,7 +8,7 @@ using DocStringExtensions
 using Requires
 using Compat: AbstractDict, LinearIndices
 using Compat.UUIDs
-using Dates
+using Compat.Dates
 using Nullables
 
 import Base: ==

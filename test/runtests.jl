@@ -1,7 +1,7 @@
 module PlotlyBaseTest
 
 using Compat.Test
-using Dates
+using Compat.Dates
 using Nullables
 
 @static if VERSION >= v"0.7.0-alpha"
