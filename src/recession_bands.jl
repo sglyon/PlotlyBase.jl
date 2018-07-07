@@ -31,7 +31,7 @@ end
 to_date(x::Union{Integer,Dates.TimeType}) = Nullable(Date(x))
 
 function to_date(x::AbstractArray{T,N}) where {T,N}
-    out_arr = Array{Date}(0)
+    out_arr = Date[]
 
     for i in x
         maybe_date = to_date(i)

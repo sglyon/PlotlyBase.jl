@@ -28,13 +28,13 @@ _maybe_set_attr!(hf::HasFields, k::Symbol, v::Any) =
     get(hf, k, nothing) == nothing && setindex!(hf, v, k)
 
 # special case for associative to get nested application
-function _maybe_set_attr!(hf::HasFields, k1::Symbol, v::Associative)
+function _maybe_set_attr!(hf::HasFields, k1::Symbol, v::AbstractDict)
     for (k2, v2) in v
         _maybe_set_attr!(hf, Symbol(k1, "_", k2), v2)
     end
 end
 
-function _maybe_set_attr!(p::Plot, k1::Symbol, v::Associative)
+function _maybe_set_attr!(p::Plot, k1::Symbol, v::AbstractDict)
     for (k2, v2) in v
         _maybe_set_attr!(p, Symbol(k1, "_", k2), v2)
     end
@@ -54,7 +54,7 @@ function _maybe_set_attr!(p::Plot, k::Symbol, v::Cycler)
 end
 
 function JSON.lower(p::Plot)
-    _is3d = any(_x -> contains(string(_x[:type]), "3d"), p.data)
+    _is3d = any(_x -> occursin("3d", string(_x[:type])), p.data)
 
     # apply layout attrs
     if !isempty(p.style.layout)
@@ -91,15 +91,15 @@ function JSON.lower(p::Plot)
     Dict(:data => p.data, :layout => p.layout)
 end
 
-@require Colors JSON.lower(a::Colors.Colorant) = string("#", hex(a))
+@require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" JSON.lower(a::Colors.Colorant) = string("#", hex(a))
 
 # Let string interpolation stringify to JSON format
 Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot}) = print(io, JSON.json(a))
 Base.print(io::IO, a::Vector{T}) where {T<:GenericTrace} = print(io, JSON.json(a))
 
-GenericTrace(d::Associative{Symbol}) = GenericTrace(pop!(d, :type, "scatter"), d)
-GenericTrace(d::Associative{T}) where {T<:AbstractString} = GenericTrace(_symbol_dict(d))
-Layout(d::Associative{T}) where {T<:AbstractString} = Layout(_symbol_dict(d))
+GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(pop!(d, :type, "scatter"), d)
+GenericTrace(d::AbstractDict{T}) where {T<:AbstractString} = GenericTrace(_symbol_dict(d))
+Layout(d::AbstractDict{T}) where {T<:AbstractString} = Layout(_symbol_dict(d))
 
 function JSON.parse(::Type{Plot}, str::AbstractString)
     d = JSON.parse(str)

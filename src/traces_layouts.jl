@@ -1,7 +1,7 @@
 abstract type AbstractTrace end
 abstract type AbstractLayout end
 
-mutable struct GenericTrace{T<:Associative{Symbol,Any}} <: AbstractTrace
+mutable struct GenericTrace{T<:AbstractDict{Symbol,Any}} <: AbstractTrace
     fields::T
 end
 
@@ -10,23 +10,23 @@ function GenericTrace(kind::Union{AbstractString,Symbol},
     # use setindex! methods below to handle `_` substitution
     fields[:type] = kind
     gt = GenericTrace(fields)
-    map(x->setindex!(gt, x[2], x[1]), kwargs)
+    foreach(x->setindex!(gt, x[2], x[1]), kwargs)
     gt
 end
 
 const _layout_defaults = Dict{Symbol,Any}(:margin => Dict(:l=>50, :r=>50, :t=>60, :b=>50))
 
-mutable struct Layout{T<:Associative{Symbol,Any}} <: AbstractLayout
+mutable struct Layout{T<:AbstractDict{Symbol,Any}} <: AbstractLayout
     fields::T
 
     function Layout{T}(fields::T; kwargs...) where T
         l = new{T}(merge(_layout_defaults, fields))
-        map(x->setindex!(l, x[2], x[1]), kwargs)
+        foreach(x->setindex!(l, x[2], x[1]), kwargs)
         l
     end
 end
 
-Layout(fields::T=Dict{Symbol,Any}(); kwargs...) where {T<:Associative{Symbol,Any}} =
+Layout(fields::T=Dict{Symbol,Any}(); kwargs...) where {T<:AbstractDict{Symbol,Any}} =
     Layout{T}(fields; kwargs...)
 
 kind(gt::GenericTrace) = get(gt, :type, "scatter")
@@ -37,7 +37,7 @@ kind(l::Layout) = "layout"
 # -------------------------------------------- #
 abstract type AbstractPlotlyAttribute end
 
-mutable struct PlotlyAttribute{T<:Associative{Symbol,Any}} <: AbstractPlotlyAttribute
+mutable struct PlotlyAttribute{T<:AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
     fields::T
 end
 
@@ -56,21 +56,21 @@ abstract type AbstractShape <: AbstractLayoutAttribute end
 kind(::AbstractPlotlyAttribute) = "PlotlyAttribute"
 
 # TODO: maybe loosen some day
-const _Scalar = Union{Base.Dates.Date,Number,AbstractString,Symbol}
+const _Scalar = Union{Date,Number,AbstractString,Symbol}
 
 # ------ #
 # Shapes #
 # ------ #
 
 mutable struct Shape <: AbstractLayoutAttribute
-    fields::Associative{Symbol}
+    fields::AbstractDict{Symbol}
 end
 
 function Shape(kind::AbstractString, fields=Dict{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
     fields[:type] = kind
     s = Shape(fields)
-    map(x->setindex!(s, x[2], x[1]), kwargs)
+    foreach(x->setindex!(s, x[2], x[1]), kwargs)
     s
 end
 
@@ -81,12 +81,12 @@ _rep(x, n) = take(cycle(x), n)
 # them here
 for t in [:line, :circle, :rect]
     str_t = string(t)
-    @eval $t(d::Associative=Dict{Symbol,Any}(), ;kwargs...) =
+    @eval $t(d::AbstractDict=Dict{Symbol,Any}(), ;kwargs...) =
         Shape($str_t, d; kwargs...)
     eval(Expr(:export, t))
 
     @eval function $(t)(x0::_Scalar, x1::_Scalar, y0::_Scalar, y1::_Scalar,
-                        fields::Associative=Dict{Symbol,Any}(); kwargs...)
+                        fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)
         $(t)(fields; x0=x0, x1=x1, y0=y0, y1=y1, kwargs...)
     end
 
@@ -94,7 +94,7 @@ for t in [:line, :circle, :rect]
                         x1::Union{AbstractVector,_Scalar},
                         y0::Union{AbstractVector,_Scalar},
                         y1::Union{AbstractVector,_Scalar},
-                        fields::Associative=Dict{Symbol,Any}(); kwargs...)
+                        fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)
         n = reduce(max, map(length, (x0, x1, y0, y1)))
         f(_x0, _x1, _y0, _y1) = $(t)(_x0, _x1, _y0, _y1, copy(fields); kwargs...)
         map(f, _rep(x0, n), _rep(x1, n), _rep(y0, n), _rep(y1, n))
@@ -119,26 +119,26 @@ export path
 
 # derived shapes
 
-vline(x, ymin, ymax, fields::Associative=Dict{Symbol,Any}(); kwargs...) =
+vline(x, ymin, ymax, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
     line(x, x, ymin, ymax, fields; kwargs...)
 
 """
-`vline(x, fields::Associative=Dict{Symbol,Any}(); kwargs...)`
+`vline(x, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)`
 
 Draw vertical lines at each point in `x` that span the height of the plot
 """
-vline(x, fields::Associative=Dict{Symbol,Any}(); kwargs...) =
+vline(x, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
     vline(x, 0, 1, fields; xref="x", yref="paper", kwargs...)
 
-hline(y, xmin, xmax, fields::Associative=Dict{Symbol,Any}(); kwargs...) =
+hline(y, xmin, xmax, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
     line(xmin, xmax, y, y, fields; kwargs...)
 
 """
-`hline(y, fields::Associative=Dict{Symbol,Any}(); kwargs...)`
+`hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)`
 
 Draw horizontal lines at each point in `y` that span the width of the plot
 """
-hline(y, fields::Associative=Dict{Symbol,Any}(); kwargs...) =
+hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
     hline(y, 0, 1, fields; xref="paper", yref="y", kwargs...)
 
 # ---------------------------------------- #
@@ -146,7 +146,7 @@ hline(y, fields::Associative=Dict{Symbol,Any}(); kwargs...) =
 # ---------------------------------------- #
 
 const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute}
-const _LikeAssociative = Union{PlotlyAttribute,Associative}
+const _LikeAssociative = Union{PlotlyAttribute,AbstractDict}
 
 #= NOTE: Generate this list with the following code
 using JSON, PlotlyJS
@@ -154,7 +154,7 @@ d = JSON.parsefile(Pkg.dir("PlotlyJS", "deps", "plotschema.json"))
 d = PlotlyJS._symbol_dict(d)
 
 nms = Set{Symbol}()
-function add_to_names!(d::Associative)
+function add_to_names!(d::AbstractDict)
     map(add_to_names!, keys(d))
     map(add_to_names!, values(d))
     nothing
@@ -229,7 +229,7 @@ Base.setindex!(gt::HasFields, val, keys::String...) =
 function Base.setindex!(gt::HasFields, val, key::Symbol)
     # check if single key has underscores, if so split at str and call above
     # unless it is one of the special attribute names with an underscore
-    if contains(string(key), "_")
+    if occursin("_", string(key))
 
         if !in(key, _UNDERSCORE_ATTRS)
             return setindex!(gt, val, string(key))
@@ -276,7 +276,7 @@ val = Layout(font_family="Helvetica")
 
 =#
 function Base.setindex!(gt::HasFields, val::_LikeAssociative, key::Symbol)
-    if contains(string(key), "_")
+    if occursin("_", string(key))
 
         if !in(key, _UNDERSCORE_ATTRS)
             return setindex!(gt, val, string(key))
@@ -317,7 +317,7 @@ Base.getindex(gt::HasFields, keys::String...) =
     getindex(gt, map(Symbol, keys)...)
 
 function Base.getindex(gt::HasFields, key::Symbol)
-    if contains(string(key), "_")
+    if occursin("_", string(key))
         if !in(key, _UNDERSCORE_ATTRS)
             return getindex(gt, string(key))
         end
@@ -357,7 +357,7 @@ Base.pop!(gt::HasFields, keys::String...) =
     pop!(gt, map(Symbol, keys)...)
 
 function Base.pop!(gt::HasFields, key::Symbol)
-    if contains(string(key), "_")
+    if occursin("_", string(key))
         if !in(key, _UNDERSCORE_ATTRS)
             return pop!(gt, string(key))
         end

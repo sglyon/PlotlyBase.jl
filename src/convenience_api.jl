@@ -50,12 +50,12 @@ function Plot(x::AbstractMatrix, y::AbstractMatrix, l::Layout=Layout();
     Plot(traces, l; style=style)
 end
 
+# AbstractArray{T,N}
 """
 $(SIGNATURES)
 Build a scatter plot and set  `y` to y. All keyword arguments are passed directly
 as keyword arguments to the constructed scatter.
 """
-# AbstractArray{T,N}
 function Plot(y::AbstractArray{T}, l::Layout=Layout(); kwargs...) where T<:_Scalar
     # call methods above to get many traces if y is >1d
     Plot(1:size(y, 1), y, l; kwargs...)

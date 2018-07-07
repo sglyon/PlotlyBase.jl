@@ -6,8 +6,17 @@ using Base.Iterators
 using JSON
 using DocStringExtensions
 using Requires
+using Compat: AbstractDict, LinearIndices
+using Compat.UUIDs
+using Dates
+using Nullables
 
 import Base: ==
+
+@static if VERSION >= v"0.7.0-alpha"
+    using Statistics: mean
+    using DelimitedFiles: readdlm
+end
 
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
@@ -17,7 +26,7 @@ export @L_mstr, @L_str
 export json
 
 _symbol_dict(x) = x
-_symbol_dict(d::Associative) =
+_symbol_dict(d::AbstractDict) =
     Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
 
 # include these here because they are used below
@@ -28,7 +37,7 @@ include("styles.jl")
 mutable struct Plot{TT<:AbstractTrace}
     data::Vector{TT}
     layout::AbstractLayout
-    divid::Base.Random.UUID
+    divid::UUID
     style::Style
 end
 
@@ -59,18 +68,18 @@ include("json.jl")
 include("subplots.jl")
 include("api.jl")
 include("convenience_api.jl")
-@require DataFrames include("dataframes_api.jl")
-@require Distributions include("distributions.jl")
+@require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" include("dataframes_api.jl")
+@require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("distributions.jl")
 include("recession_bands.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;style::Style=CURRENT_STYLE[])
-    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), Base.Random.uuid4(), style)
+    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), uuid4(), style)
 end
 
 function Plot(data::AbstractVector{T}, layout=Layout();
               style::Style=CURRENT_STYLE[]) where T<:AbstractTrace
-    Plot(data, layout, Base.Random.uuid4(), style)
+    Plot(data, layout, uuid4(), style)
 end
 
 function Plot(data::AbstractTrace, layout=Layout();
@@ -125,7 +134,7 @@ Base.Multimedia.istextmime(::MIME"application/vnd.plotly.v1+json") = true
 function Base.show(io::IO, ::MIME"application/vnd.plotly.v1+json", p::Plot)
     JSON.print(io, p)
 end
-@require IJulia begin
+@require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
     function IJulia.display_dict(p::Plot)
         Dict(
             "application/vnd.plotly.v1+json" => JSON.lower(p),
