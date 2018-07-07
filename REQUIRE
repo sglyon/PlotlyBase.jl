@@ -3,5 +3,5 @@ JSON 0.7
 DocStringExtensions
 Requires
 LaTeXStrings
-Compat
+Compat 0.9.5
 Nullables
