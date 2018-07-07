@@ -15,20 +15,20 @@ trace.
 columns (say `N`). Then `N` traces are constructed, where the `i`th column of
 `x` is paired with the `i`th column of `y`.
 """
-function Plot{T<:_Scalar}(x::AbstractVector{T}, y::AbstractVector, l::Layout=Layout();
-              kind="scatter", style::Style=CURRENT_STYLE[], kwargs...)
+function Plot(x::AbstractVector{T}, y::AbstractVector, l::Layout=Layout();
+              kind="scatter", style::Style=CURRENT_STYLE[], kwargs...) where T<:_Scalar
     Plot(GenericTrace(x, y; kind=kind, kwargs...), l, style=style)
 end
 
-function Plot{T<:_Scalar}(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...)
+function Plot(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
+              style::Style=CURRENT_STYLE[], kwargs...) where T<:_Scalar
     traces = GenericTrace[GenericTrace(x, view(y, :, i); kwargs...)
                           for i in 1:size(y, 2)]
     Plot(traces, l, style=style)
 end
 
-function Plot{T<:AbstractVector}(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...)
+function Plot(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
+              style::Style=CURRENT_STYLE[], kwargs...) where T<:AbstractVector
     size(x, 1) == size(y, 2) || error("x and y must have same number of cols")
 
     traces = GenericTrace[GenericTrace(x[i], view(y, :, i); kwargs...)
@@ -56,7 +56,7 @@ Build a scatter plot and set  `y` to y. All keyword arguments are passed directl
 as keyword arguments to the constructed scatter.
 """
 # AbstractArray{T,N}
-function Plot{T<:_Scalar}(y::AbstractArray{T}, l::Layout=Layout(); kwargs...)
+function Plot(y::AbstractArray{T}, l::Layout=Layout(); kwargs...) where T<:_Scalar
     # call methods above to get many traces if y is >1d
     Plot(1:size(y, 1), y, l; kwargs...)
 end

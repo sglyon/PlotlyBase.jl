@@ -95,11 +95,11 @@ end
 
 # Let string interpolation stringify to JSON format
 Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot}) = print(io, JSON.json(a))
-Base.print{T<:GenericTrace}(io::IO, a::Vector{T}) = print(io, JSON.json(a))
+Base.print(io::IO, a::Vector{T}) where {T<:GenericTrace} = print(io, JSON.json(a))
 
 GenericTrace(d::Associative{Symbol}) = GenericTrace(pop!(d, :type, "scatter"), d)
-GenericTrace{T<:AbstractString}(d::Associative{T}) = GenericTrace(_symbol_dict(d))
-Layout{T<:AbstractString}(d::Associative{T}) = Layout(_symbol_dict(d))
+GenericTrace(d::Associative{T}) where {T<:AbstractString} = GenericTrace(_symbol_dict(d))
+Layout(d::Associative{T}) where {T<:AbstractString} = Layout(_symbol_dict(d))
 
 function JSON.parse(::Type{Plot}, str::AbstractString)
     d = JSON.parse(str)

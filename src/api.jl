@@ -35,7 +35,7 @@ for t in _TRACE_TYPES
     eval(Expr(:export, t))
 end
 
-Base.copy{HF<:HasFields}(hf::HF) = HF(deepcopy(hf.fields))
+Base.copy(hf::HF) where {HF<:HasFields} = HF(deepcopy(hf.fields))
 Base.copy(p::Plot) = Plot(AbstractTrace[copy(t) for t in p.data], copy(p.layout))
 fork(p::Plot) = Plot(deepcopy(p.data), copy(p.layout))
 

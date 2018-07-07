@@ -68,8 +68,8 @@ function Plot(;style::Style=CURRENT_STYLE[])
     Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), Base.Random.uuid4(), style)
 end
 
-function Plot{T<:AbstractTrace}(data::AbstractVector{T}, layout=Layout();
-                                style::Style=CURRENT_STYLE[])
+function Plot(data::AbstractVector{T}, layout=Layout();
+              style::Style=CURRENT_STYLE[]) where T<:AbstractTrace
     Plot(data, layout, Base.Random.uuid4(), style)
 end
 

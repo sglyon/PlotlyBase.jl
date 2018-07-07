@@ -19,14 +19,14 @@ const _layout_defaults = Dict{Symbol,Any}(:margin => Dict(:l=>50, :r=>50, :t=>60
 mutable struct Layout{T<:Associative{Symbol,Any}} <: AbstractLayout
     fields::T
 
-    function (::Type{Layout{T}}){T}(fields::T; kwargs...)
+    function Layout{T}(fields::T; kwargs...) where T
         l = new{T}(merge(_layout_defaults, fields))
         map(x->setindex!(l, x[2], x[1]), kwargs)
         l
     end
 end
 
-Layout{T<:Associative{Symbol,Any}}(fields::T=Dict{Symbol,Any}(); kwargs...) =
+Layout(fields::T=Dict{Symbol,Any}(); kwargs...) where {T<:Associative{Symbol,Any}} =
     Layout{T}(fields; kwargs...)
 
 kind(gt::GenericTrace) = get(gt, :type, "scatter")
@@ -195,7 +195,7 @@ end
 
 Base.haskey(hf::HasFields, k::Symbol) = haskey(hf.fields, k)
 
-Base.merge{T<:HasFields}(hf1::T, hf2::T) =
+Base.merge(hf1::T, hf2::T) where {T<:HasFields} =
     merge!(deepcopy(hf1), hf2)
 
 Base.isempty(hf::HasFields) = isempty(hf.fields)
@@ -209,7 +209,7 @@ Base.start(hf::HasFields) = start(hf.fields)
 Base.next(hf::HasFields, x) = next(hf.fields, x)
 Base.done(hf::HasFields, x) = done(hf.fields, x)
 
-=={T<:HasFields}(hf1::T, hf2::T) = hf1.fields == hf2.fields
+==(hf1::T, hf2::T) where {T<:HasFields} = hf1.fields == hf2.fields
 
 # methods that allow you to do `obj["first.second.third"] = val`
 function Base.setindex!(gt::HasFields, val, key::String)

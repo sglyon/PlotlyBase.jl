@@ -30,7 +30,7 @@ end
 
 to_date(x::Union{Integer,Dates.TimeType}) = Nullable(Date(x))
 
-function to_date{T,N}(x::AbstractArray{T,N})
+function to_date(x::AbstractArray{T,N}) where {T,N}
     out_arr = Array{Date}(0)
 
     for i in x
@@ -44,7 +44,7 @@ function to_date{T,N}(x::AbstractArray{T,N})
     Nullable(reshape(out_arr, size(x)))
 end
 
-function to_date{T<:Dates.TimeType,N}(x::AbstractArray{T,N})
+function to_date(x::AbstractArray{T,N}) where {T<:Dates.TimeType,N}
     Nullable(map(Date, x))
 end
 
