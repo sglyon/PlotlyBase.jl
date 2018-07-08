@@ -5,7 +5,7 @@
 prep_kwarg(pair::Union{Pair,Tuple}) =
     (Symbol(replace(string(pair[1]), "_", ".")), pair[2])
 prep_kwargs(pairs::AbstractVector) = Dict(map(prep_kwarg, pairs))
-prep_kwargs(pairs::Associative) = Dict(prep_kwarg((k, v)) for (k, v) in pairs)
+prep_kwargs(pairs::AbstractDict) = Dict(prep_kwarg((k, v)) for (k, v) in pairs)
 
 """
     size(::PlotlyBase.Plot)
@@ -29,13 +29,13 @@ for t in _TRACE_TYPES
     str_t = string(t)
     code = quote
         $t(;kwargs...) = GenericTrace($str_t; kwargs...)
-        $t(d::Associative; kwargs...) = GenericTrace($str_t, _symbol_dict(d); kwargs...)
+        $t(d::AbstractDict; kwargs...) = GenericTrace($str_t, _symbol_dict(d); kwargs...)
     end
     eval(code)
     eval(Expr(:export, t))
 end
 
-Base.copy{HF<:HasFields}(hf::HF) = HF(deepcopy(hf.fields))
+Base.copy(hf::HF) where {HF<:HasFields} = HF(deepcopy(hf.fields))
 Base.copy(p::Plot) = Plot(AbstractTrace[copy(t) for t in p.data], copy(p.layout))
 fork(p::Plot) = Plot(deepcopy(p.data), copy(p.layout))
 
@@ -63,12 +63,12 @@ NOTE that the argument `i` here is _not_ the same as the argument `ind` below.
 apply the update to.
 
 =#
-function _apply_restyle_setindex!(hf::Union{Associative,HasFields}, k::Symbol,
+function _apply_restyle_setindex!(hf::Union{AbstractDict,HasFields}, k::Symbol,
                                   v::Union{AbstractArray,Tuple}, i::Int)
     setindex!(hf, v[i], k)
 end
 
-_apply_restyle_setindex!(hf::Union{Associative,HasFields}, k::Symbol, v, i::Int) =
+_apply_restyle_setindex!(hf::Union{AbstractDict,HasFields}, k::Symbol, v, i::Int) =
     setindex!(hf, v, k)
 
 
@@ -109,11 +109,11 @@ function _update_fields(hf::GenericTrace, i::Int, update::Dict=Dict(); kwargs...
 end
 
 """
-    relayout!(l::Layout, update::Associative=Dict(); kwargs...)
+    relayout!(l::Layout, update::AbstractDict=Dict(); kwargs...)
 
 Update `l` using update dict and/or kwargs
 """
-function relayout!(l::Layout, update::Associative=Dict(); kwargs...)
+function relayout!(l::Layout, update::AbstractDict=Dict(); kwargs...)
     merge!(l.fields, update)  # apply updates in the dict w/out `_` processing
     for (k,v) in kwargs
         setindex!(l, v, k)
@@ -122,37 +122,37 @@ function relayout!(l::Layout, update::Associative=Dict(); kwargs...)
 end
 
 """
-    relayout!(p::Plot, update::Associative=Dict(); kwargs...)
+    relayout!(p::Plot, update::AbstractDict=Dict(); kwargs...)
 
 Update `p.layout` on using update dict and/or kwargs
 """
-relayout!(p::Plot, update::Associative=Dict(); kwargs...) =
+relayout!(p::Plot, update::AbstractDict=Dict(); kwargs...) =
     relayout!(p.layout, update; kwargs...)
 
 """
-    restyle!(gt::GenericTrace, i::Int=1, update::Associative=Dict(); kwargs...)
+    restyle!(gt::GenericTrace, i::Int=1, update::AbstractDict=Dict(); kwargs...)
 
 Update trace `gt` using dict/kwargs, assuming it was the `i`th ind in a call
 to `restyle!(::Plot, ...)`
 """
-restyle!(gt::GenericTrace, i::Int=1, update::Associative=Dict(); kwargs...) =
+restyle!(gt::GenericTrace, i::Int=1, update::AbstractDict=Dict(); kwargs...) =
     _update_fields(gt, i, update; kwargs...)
 
 """
-    restyle!(p::Plot, ind::Int=1, update::Associative=Dict(); kwargs...)
+    restyle!(p::Plot, ind::Int=1, update::AbstractDict=Dict(); kwargs...)
 
 Update `p.data[ind]` using update dict and/or kwargs
 """
-restyle!(p::Plot, ind::Int, update::Associative=Dict(); kwargs...) =
+restyle!(p::Plot, ind::Int, update::AbstractDict=Dict(); kwargs...) =
     restyle!(p.data[ind], 1, update; kwargs...)
 
 """
-    restyle!(::Plot, ::AbstractVector{Int}, ::Associative=Dict(); kwargs...)
+    restyle!(::Plot, ::AbstractVector{Int}, ::AbstractDict=Dict(); kwargs...)
 
 Update specific traces at `p.data[inds]` using update dict and/or kwargs
 """
 function restyle!(p::Plot, inds::AbstractVector{Int},
-                  update::Associative=Dict(); kwargs...)
+                  update::AbstractDict=Dict(); kwargs...)
     N = length(inds)
     kw = Dict{Symbol,Any}(kwargs)
 
@@ -167,11 +167,11 @@ function restyle!(p::Plot, inds::AbstractVector{Int},
 end
 
 """
-    restyle!(p::Plot, update::Associative=Dict(); kwargs...)
+    restyle!(p::Plot, update::AbstractDict=Dict(); kwargs...)
 
 Update all traces using update dict and/or kwargs
 """
-restyle!(p::Plot, update::Associative=Dict(); kwargs...) =
+restyle!(p::Plot, update::AbstractDict=Dict(); kwargs...) =
     restyle!(p, 1:length(p.data), update; kwargs...)
 
 """
@@ -212,7 +212,7 @@ restyle!
 
 function update!(
         p::Plot, ind::Union{AbstractVector{Int},Int},
-        update::Associative=Dict(); layout::Layout=Layout(),
+        update::AbstractDict=Dict(); layout::Layout=Layout(),
         kwargs...
     )
     relayout!(p; layout.fields...)
@@ -390,7 +390,7 @@ extendtraces!(p, Dict("marker.size"=>Vector[[1, 3], [5, 5, 6]]), [3, 5], 10)
 ```
 
 """
-function extendtraces!(p::Plot, update::Associative, indices::Vector{Int}=[1],
+function extendtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
                        maxpoints=-1)
     # TODO: maxpoints not handled here
     for (ix, p_ix) in enumerate(indices)
@@ -403,14 +403,14 @@ function extendtraces!(p::Plot, update::Associative, indices::Vector{Int}=[1],
 end
 
 """
-    prependtraces!(p::Plot, update::Associative, indices::Vector{Int}=[1],
+    prependtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
                     maxpoints=-1)
                     
 The API for `prependtraces` is equivalent to that for `extendtraces` except that
 the data is added to the front of the traces attributes instead of the end. See
 Those docstrings for more information
 """
-function prependtraces!(p::Plot, update::Associative, indices::Vector{Int}=[1],
+function prependtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
                         maxpoints=-1)
     # TODO: maxpoints not handled here
     for (ix, p_ix) in enumerate(indices)
@@ -431,7 +431,7 @@ for f in (:extendtraces!, :prependtraces!)
         $(f)(p::Plot, ind::Int, maxpoints=-1; update...) =
             ($f)(p, [ind], maxpoints; update...)
 
-        $(f)(p::Plot, update::Associative, ind::Int, maxpoints=-1) =
+        $(f)(p::Plot, update::AbstractDict, ind::Int, maxpoints=-1) =
             ($f)(p, update, [ind], maxpoints)
     end
 end

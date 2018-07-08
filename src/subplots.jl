@@ -26,7 +26,7 @@ function gen_layout(nr, nc, subplot_titles::Bool=false)
 
         y = 1.0 # reset y as we start a new col
         for row in 1:nr
-            subplot = sub2ind((nc, nr), col, row)
+            subplot = LinearIndices((nc, nr))[col, row]
 
             out["xaxis$subplot"] = Dict{Any,Any}(:domain=>[x, x+w],
                                                  :anchor=> "y$subplot")
@@ -84,7 +84,7 @@ function _cat(nr::Int, nc::Int, ps::Plot...)
     layout = gen_layout(nr, nc, subplot_titles)
 
     for col in 1:nc, row in 1:nr
-        ix = sub2ind((nc, nr), col, row)
+        ix = LinearIndices((nc, nr))[col, row]
         handle_titles!(layout, copied_plots[ix].layout, ix)
         layout["xaxis$ix"] = merge(copied_plots[ix].layout["xaxis"], layout["xaxis$ix"])
         layout["yaxis$ix"] = merge(copied_plots[ix].layout["yaxis"], layout["yaxis$ix"])
