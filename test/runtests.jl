@@ -1,8 +1,7 @@
 module PlotlyBaseTest
 
-using Compat.Test
-using Compat.Dates
-using Nullables
+using Test
+using Dates
 
 @static if VERSION >= v"0.7.0-alpha"
     using DelimitedFiles: readdlm

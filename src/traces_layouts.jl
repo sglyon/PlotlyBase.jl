@@ -205,9 +205,8 @@ function Base.get(hf::HasFields, k::Symbol, default)
     (out == Dict()) ? default : out
 end
 
-Base.start(hf::HasFields) = start(hf.fields)
-Base.next(hf::HasFields, x) = next(hf.fields, x)
-Base.done(hf::HasFields, x) = done(hf.fields, x)
+Base.iterate(hf::HasFields) = iterate(hf.fields)
+Base.iterate(hf::HasFields, x) = iterate(hf.fields, x)
 
 ==(hf1::T, hf2::T) where {T<:HasFields} = hf1.fields == hf2.fields
 
@@ -282,7 +281,7 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, key::Symbol)
             return setindex!(gt, val, string(key))
         end
     end
-    
+
     for (k, v) in val
         setindex!(gt, v, key, k)
     end
@@ -386,7 +385,7 @@ end
 
 # Function used to have meaningful display of traces and layouts
 function _describe(x::HasFields)
-    fields = sort(map(string, keys(x.fields)))
+    fields = sort(map(String, collect(keys(x.fields))))
     n_fields = length(fields)
     if n_fields == 0
         return "$(kind(x)) with no fields"

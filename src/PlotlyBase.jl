@@ -6,10 +6,8 @@ using Base.Iterators
 using JSON
 using DocStringExtensions
 using Requires
-using Compat: AbstractDict, LinearIndices, occursin
-using Compat.UUIDs
-using Compat.Dates
-using Nullables
+using UUIDs
+using Dates
 
 import Base: ==
 

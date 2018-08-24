@@ -1,5 +1,5 @@
 # start with empty, it is easier to enumerate the true cases
-to_date(x) = Nullable{Date}()
+to_date(x) = nothing
 
 function to_date(x::AbstractString)
     # maybe it is yyyy
@@ -12,41 +12,39 @@ function to_date(x::AbstractString)
     nparts = length(parts)
     if nparts == 3
         try
-            return Nullable{Date}(Date(x, "y-m-d"))
+            return Date(x, "y-m-d")
         catch
-            return Nullable{Date}()
+            return nothing
         end
     elseif nparts == 2
         try
-            return Nullable{Date}(Date(x, "y-m"))
+            return Date(x, "y-m")
         catch
-            return Nullable{Date}()
+            return nothing
         end
     end
 
     # don't know how to handle anything else.
-    return Nullable{Date}()
+    return nothing
 end
 
-to_date(x::Union{Integer,Dates.TimeType}) = Nullable(Date(x))
+to_date(x::Union{Integer,Dates.TimeType}) = Date(x)
 
 function to_date(x::AbstractArray{T,N}) where {T,N}
     out_arr = Date[]
 
     for i in x
         maybe_date = to_date(i)
-        if isnull(maybe_date)
-            return Nullable{Array{Date,N}}()
+        if maybe_date === nothing
+            return nothing
         else
-            push!(out_arr, get(maybe_date))
+            push!(out_arr, maybe_date)
         end
     end
-    Nullable(reshape(out_arr, size(x)))
+    reshape(out_arr, size(x))
 end
 
-function to_date(x::AbstractArray{T,N}) where {T<:Dates.TimeType,N}
-    Nullable(map(Date, x))
-end
+to_date(x::AbstractArray{T,N}) where {T<:Dates.TimeType,N} = Date.(x)
 
 #=
 I populated recession_dates.tsv with the following (ugly!!) code
@@ -95,22 +93,18 @@ function _recession_band_shapes(p::Plot; kwargs...)
     for (i, t) in enumerate(p.data)
         t_x = t[:x]
         if !isempty(t_x)
-            maybe_dates = to_date(t_x)
-            if isnull(maybe_dates)
-                continue
-            else
-                dates = get(maybe_dates)
-                if typeof(dates) <: AbstractArray
-                    min_date[i] = min(min_date[i], minimum(dates))
-                    max_date[i] = max(max_date[i], maximum(dates))
-                    dates_changed[i] = true
-                    x_has_dates[i] = true
-                end
+            dates = to_date(t_x)
+            dates === nothing && continue
+            if typeof(dates) <: AbstractArray
+                min_date[i] = min(min_date[i], minimum(dates))
+                max_date[i] = max(max_date[i], maximum(dates))
+                dates_changed[i] = true
+                x_has_dates[i] = true
             end
         end
     end
     if !any(dates_changed)
-        return Nullable{Vector{Shape}}()
+        return nothing
     end
 
     # map traces into xaxis and yaxis
@@ -130,7 +124,7 @@ function _recession_band_shapes(p::Plot; kwargs...)
         ix1 = minimum(searchsortedfirst(recession_data[:, 1], m) for m in min_date)
         ix2 = maximum(searchsortedlast(recession_data[:, 2], m) for m in max_date)
         if isempty(ix1:ix2)
-            return Nullable{Vector{Shape}}()
+            return nothing
         end
 
         out = rect(
@@ -141,7 +135,7 @@ function _recession_band_shapes(p::Plot; kwargs...)
             band_kwargs.fields;
             xref="x"
         )
-        return Nullable{Vector{Shape}}(out)
+        return out
     end
 
     # otherwise we need to loop over the  traces and add one set of shapes
@@ -194,15 +188,14 @@ function _recession_band_shapes(p::Plot; kwargs...)
             already_added[xmap[i]] = true
         end
     end
-    Nullable(out)
+    out
 end
 
 function add_recession_bands!(p::Plot; kwargs...)
-    maybe_bands = _recession_band_shapes(p; kwargs...)
-    if isnull(maybe_bands)
+    bands = _recession_band_shapes(p; kwargs...)
+    if bands === nothing
         return
     end
-    bands = get(maybe_bands)
 
     # now we have some bands that we need to apply to the layout
     old_shapes = p.layout[:shapes]

@@ -1,6 +1,6 @@
 @testset "recession_bands" begin
     p1 = Plot(scatter(x=1:10, y=rand(10)))
-    @test isnull(PlotlyBase._recession_band_shapes(p1))
+    @test PlotlyBase._recession_band_shapes(p1) === nothing
 
     _path = joinpath(@__DIR__, "data", "us_manu_unemp.csv")
     _with_dates_raw = readdlm(_path, ',')
@@ -8,20 +8,20 @@
     with_dates[:, 1] = map(Date, with_dates[:, 1])
 
     p2 = Plot(scatter(x=with_dates[:, 1], y=with_dates[:, 2]))
-    @test !isnull(PlotlyBase._recession_band_shapes(p2))
-    @test length(get(PlotlyBase._recession_band_shapes(p2))) == 7
+    @test PlotlyBase._recession_band_shapes(p2) !== nothing
+    @test length(PlotlyBase._recession_band_shapes(p2)) == 7
 
     p3 = Plot(scatter(x=with_dates[:, 1], y=with_dates[:, 3]))
-    @test !isnull(PlotlyBase._recession_band_shapes(p3))
-    @test length(get(PlotlyBase._recession_band_shapes(p3))) == 7
+    @test PlotlyBase._recession_band_shapes(p3) !== nothing
+    @test length(PlotlyBase._recession_band_shapes(p3)) == 7
 
     p12 = [p1; p2]
-    @test !isnull(PlotlyBase._recession_band_shapes(p12))
-    @test length(get(PlotlyBase._recession_band_shapes(p12))) == 7
+    @test PlotlyBase._recession_band_shapes(p12) !== nothing
+    @test length(PlotlyBase._recession_band_shapes(p12)) == 7
 
     p123 = [p1; p2; p3]
-    @test !isnull(PlotlyBase._recession_band_shapes(p123))
-    @test length(get(PlotlyBase._recession_band_shapes(p123))) == 14
+    @test PlotlyBase._recession_band_shapes(p123) !== nothing
+    @test length(PlotlyBase._recession_band_shapes(p123)) == 14
 
     add_recession_bands!(p1)
     @test length(p1.layout["shapes"]) == 0
