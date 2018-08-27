@@ -1,5 +1,3 @@
-__precompile__()
-
 module PlotlyBase
 
 using Base.Iterators
@@ -11,10 +9,8 @@ using Dates
 
 import Base: ==
 
-@static if VERSION >= v"0.7.0-alpha"
-    using Statistics: mean
-    using DelimitedFiles: readdlm
-end
+using Statistics: mean
+using DelimitedFiles: readdlm
 
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
@@ -132,12 +128,14 @@ Base.Multimedia.istextmime(::MIME"application/vnd.plotly.v1+json") = true
 function Base.show(io::IO, ::MIME"application/vnd.plotly.v1+json", p::Plot)
     JSON.print(io, p)
 end
-@require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
-    function IJulia.display_dict(p::Plot)
-        Dict(
-            "application/vnd.plotly.v1+json" => JSON.lower(p),
-            "text/plain" => sprint(show, "text/plain", p)
-        )
+function __init__()
+    @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
+        function IJulia.display_dict(p::Plot)
+            Dict(
+                "application/vnd.plotly.v1+json" => JSON.lower(p),
+                "text/plain" => sprint(show, "text/plain", p)
+            )
+        end
     end
 end
 
