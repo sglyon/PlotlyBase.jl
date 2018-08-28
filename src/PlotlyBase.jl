@@ -35,6 +35,9 @@ mutable struct Plot{TT<:AbstractTrace}
     style::Style
 end
 
+# Default `convert` fallback constructor
+Plot(p::Plot) = p
+
 function Base.show(io::IO, ::MIME"text/plain", p::Plot)
     println(io, """
     data: $(json(map(_describe, p.data), 2))

@@ -3,7 +3,7 @@
 # -------------------------- #
 
 prep_kwarg(pair::Union{Pair,Tuple}) =
-    (Symbol(replace(string(pair[1]), "_", ".")), pair[2])
+    (Symbol(replace(string(pair[1]), "_" => ".")), pair[2])
 prep_kwargs(pairs::AbstractVector) = Dict(map(prep_kwarg, pairs))
 prep_kwargs(pairs::AbstractDict) = Dict(prep_kwarg((k, v)) for (k, v) in pairs)
 
@@ -207,7 +207,7 @@ restyle!(p, 1, marker_color=(["red", "green"],))
 # sets marker color on trace 3 to ["red", "green"]
 restyle!(p, 1:3, marker_color=(["red", "green"], "blue"))
 ```
-""" 
+"""
 restyle!
 
 function update!(
@@ -361,7 +361,7 @@ _tovec(v) = _tovec([v])
 _tovec(v::Vector) = eltype(v) <: Vector ? v : Vector[v]
 
 """
-    extendtraces!(::Plot, ::Dict{Union{Symbol,AbstractString},Vector{Vector{Any}}}), indices, maxpoints)
+    extendtraces!(::Plot, ::Dict{Union{Symbol,AbstractString},AbstractVector{Vector{Any}}}), indices, maxpoints)
 
 Extend one or more traces with more data. A few notes about the structure of the
 update dict are important to remember:
@@ -390,7 +390,7 @@ extendtraces!(p, Dict("marker.size"=>Vector[[1, 3], [5, 5, 6]]), [3, 5], 10)
 ```
 
 """
-function extendtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
+function extendtraces!(p::Plot, update::AbstractDict, indices::AbstractVector{Int}=[1],
                        maxpoints=-1)
     # TODO: maxpoints not handled here
     for (ix, p_ix) in enumerate(indices)
@@ -403,14 +403,14 @@ function extendtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
 end
 
 """
-    prependtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
+    prependtraces!(p::Plot, update::AbstractDict, indices::AbstractVector{Int}=[1],
                     maxpoints=-1)
-                    
+
 The API for `prependtraces` is equivalent to that for `extendtraces` except that
 the data is added to the front of the traces attributes instead of the end. See
 Those docstrings for more information
 """
-function prependtraces!(p::Plot, update::AbstractDict, indices::Vector{Int}=[1],
+function prependtraces!(p::Plot, update::AbstractDict, indices::AbstractVector{Int}=[1],
                         maxpoints=-1)
     # TODO: maxpoints not handled here
     for (ix, p_ix) in enumerate(indices)

@@ -5,7 +5,7 @@ using Distributions
 end
 
 _strip_module(s) = split(s, '.', limit=2)[end]
-_strip_type_param(s) = replace(s, r"{.+?}", "")
+_strip_type_param(s) = replace(s, r"{.+?}" => "")
 _clean_name(d::Distribution) = _strip_module(_strip_type_param(repr(d)))
 
 function scatter(d::Distributions.ContinuousUnivariateDistribution)

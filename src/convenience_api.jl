@@ -22,7 +22,7 @@ end
 
 function Plot(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
               style::Style=CURRENT_STYLE[], kwargs...) where T<:_Scalar
-    traces = GenericTrace[GenericTrace(x, view(y, :, i); kwargs...)
+    traces = GenericTrace[GenericTrace(x, getindex(y, :, i); kwargs...)
                           for i in 1:size(y, 2)]
     Plot(traces, l, style=style)
 end
@@ -31,7 +31,7 @@ function Plot(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
               style::Style=CURRENT_STYLE[], kwargs...) where T<:AbstractVector
     size(x, 1) == size(y, 2) || error("x and y must have same number of cols")
 
-    traces = GenericTrace[GenericTrace(x[i], view(y, :, i); kwargs...)
+    traces = GenericTrace[GenericTrace(x[i], getindex(y, :, i); kwargs...)
                           for i in 1:size(y,2)]
     Plot(traces, l; style=style)
 end
@@ -40,12 +40,12 @@ function Plot(x::AbstractMatrix, y::AbstractMatrix, l::Layout=Layout();
               style::Style=CURRENT_STYLE[], kwargs...)
     if size(x, 2) == 1
         # use method above
-        Plot(view(x, :, 1), y, l; style=style, kwargs...)
+        Plot(getindex(x, :, 1), y, l; style=style, kwargs...)
     end
 
     size(x, 2) == size(y, 2) || error("x and y must have same number of cols")
 
-    traces = GenericTrace[GenericTrace(view(x, :, i), view(y, :, i); kwargs...)
+    traces = GenericTrace[GenericTrace(getindex(x, :, i), getindex(y, :, i); kwargs...)
                           for i in 1:size(y,2)]
     Plot(traces, l; style=style)
 end
