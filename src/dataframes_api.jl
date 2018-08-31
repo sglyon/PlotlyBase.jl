@@ -1,9 +1,5 @@
-import DataFrames.AbstractDataFrame
-using DataFrames
-
-@require Revise="295af30f-e4ad-537b-8983-00126c2a3abe" begin
-    Revise.track(PlotlyBase, @__FILE__)
-end
+import .DataFrames.AbstractDataFrame
+using .DataFrames
 
 # utilities
 
@@ -122,4 +118,10 @@ end
 for t in _TRACE_TYPES
     str_t = string(t)
     @eval $t(df::AbstractDataFrame; kwargs...) = GenericTrace(df; kind=$(str_t), kwargs...)
+end
+
+
+@require Revise="295af30f-e4ad-537b-8983-00126c2a3abe" begin
+    import .Revise: track
+    track(PlotlyBase, @__FILE__)
 end
