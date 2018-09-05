@@ -73,10 +73,11 @@ export
     # plotly.js api methods
     restyle!, relayout!, update!, addtraces!, deletetraces!, movetraces!,
     redraw!, extendtraces!, prependtraces!, purge!, to_image, download_image,
+    react!,
 
     # non-!-versions (forks, then applies, then returns fork)
     restyle, relayout, update, addtraces, deletetraces, movetraces, redraw,
-    extendtraces, prependtraces,
+    extendtraces, prependtraces, react,
 
     # helper methods
     plot, fork, vline, hline, attr,
@@ -94,7 +95,7 @@ export
     use_style!, style, Style, Cycler,
 
     # other
-    savejson, savefig
+    savejson, savefig, html_body
 
 function __init__()
     env_style = Symbol(get(ENV, "PLOTLYJS_STYLE", ""))

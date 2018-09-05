@@ -121,6 +121,11 @@ function relayout!(l::Layout, update::AbstractDict=Dict(); kwargs...)
     l
 end
 
+function relayout!(dest::Layout, src::Layout; kwargs...)
+    merge!(dest, src)
+    relayout!(dest; kwargs...)
+end
+
 """
     relayout!(p::Plot, update::AbstractDict=Dict(); kwargs...)
 
@@ -347,15 +352,21 @@ Both `src` and `dest` must be `Vector{Int}`
 movetraces!(p::Plot, src::AbstractVector{Int}, dest::AbstractVector{Int}) =
     (map((i,j) -> _move_one!(p.data, i, j), src, dest); p)
 
+function purge!(p::Plot)
+    empty!(p.data)
+    p.layout = Layout()
+    nothing
+end
+
+function react!(p::Plot, data::AbstractVector{<:AbstractTrace}, layout::Layout)
+    p.data = data
+    relayout!(p, layout)
+end
+
 # no-op here
 redraw!(p::Plot) = nothing
-purge!(p::Plot) = nothing
 to_image(p::Plot; kwargs...) = nothing
 download_image(p::Plot; kwargs...) = nothing
-
-# --------------------------------- #
-# unexported methods in plot_api.js #
-# --------------------------------- #
 
 _tovec(v) = _tovec([v])
 _tovec(v::Vector) = eltype(v) <: Vector ? v : Vector[v]
@@ -438,7 +449,7 @@ end
 
 
 for f in [:restyle, :relayout, :update, :addtraces, :deletetraces,
-          :movetraces, :redraw, :extendtraces, :prependtraces, :purge]
+          :movetraces, :redraw, :extendtraces, :prependtraces, :purge, :react]
     f! = Symbol(f, "!")
     @eval function $(f)(p::Plot, args...; kwargs...)
         out = fork(p)
