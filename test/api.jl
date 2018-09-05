@@ -64,7 +64,10 @@ end
 
     @testset "test purge!" begin
         t1, t2, t3, l, p = fresh_data()
-end
+        purge!(p)
+        @test p.data == []
+        @test p.layout == Layout()
+    end
 
     @testset "test restyle!" begin
         t1, t2, t3, l, p = fresh_data()
