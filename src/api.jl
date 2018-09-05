@@ -131,8 +131,8 @@ end
 
 Update `p.layout` on using update dict and/or kwargs
 """
-relayout!(p::Plot, update::AbstractDict=Dict(); kwargs...) =
-    relayout!(p.layout, update; kwargs...)
+relayout!(p::Plot, args...; kwargs...) =
+    relayout!(p.layout, args...; kwargs...)
 
 """
     restyle!(gt::GenericTrace, i::Int=1, update::AbstractDict=Dict(); kwargs...)
@@ -360,7 +360,7 @@ end
 
 function react!(p::Plot, data::AbstractVector{<:AbstractTrace}, layout::Layout)
     p.data = data
-    relayout!(p, layout)
+    relayout!(p.layout, layout)
 end
 
 # no-op here

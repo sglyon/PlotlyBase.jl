@@ -50,6 +50,22 @@ end
         @test l["xaxis.title"] == "wuzzy"
     end
 
+    @testset "test react!" begin
+        t1, t2, t3, l, p = fresh_data()
+        t4 = bar(x=[1, 2, 3], y=[42, 242, 142])
+        l2 = Layout(xaxis_title="wuzzy")
+        react!(p, [t4], l2)
+
+        @test length(p.data) == 1
+        @test p.data[1] == t4
+        @test p.layout[:title] == "Foo"
+        @test p.layout[:xaxis_title] == "wuzzy"
+    end
+
+    @testset "test purge!" begin
+        t1, t2, t3, l, p = fresh_data()
+end
+
     @testset "test restyle!" begin
         t1, t2, t3, l, p = fresh_data()
         # test on trace object
