@@ -58,8 +58,7 @@ end
 
         @test length(p.data) == 1
         @test p.data[1] == t4
-        @test p.layout[:title] == "Foo"
-        @test p.layout[:xaxis_title] == "wuzzy"
+        @test p.layout == l2
     end
 
     @testset "test purge!" begin

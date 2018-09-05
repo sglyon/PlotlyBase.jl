@@ -360,7 +360,8 @@ end
 
 function react!(p::Plot, data::AbstractVector{<:AbstractTrace}, layout::Layout)
     p.data = data
-    relayout!(p.layout, layout)
+    p.layout = layout
+    nothing
 end
 
 # no-op here
