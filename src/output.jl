@@ -3,21 +3,35 @@
 # ----------------------- #
 function html_body(p::Plot)
     """
-    <div id="$(p.divid)" class="plotly-graph-div"></div>
-
     <script>
-        window.PLOTLYENV=window.PLOTLYENV || {};
-        window.PLOTLYENV.BASE_URL="https://plot.ly";
         $(script_content(p))
      </script>
     """
 end
 
 function script_content(p::Plot)
-    lowered = JSON.lower(p)
     """
-    Plotly.newPlot('$(p.divid)', $(json(lowered[:data])),
-                   $(json(lowered[:layout])), {showLink: false});
+    gd = (function() {
+      var WIDTH_IN_PERCENT_OF_PARENT = 100;
+      var HEIGHT_IN_PERCENT_OF_PARENT = 100;
+      var gd = Plotly.d3.select('body')
+        .append('div').attr("id", "$(p.divid)")
+        .style({
+          width: WIDTH_IN_PERCENT_OF_PARENT + '%',
+          'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
+          height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+          'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
+        })
+        .node();
+      var plot_json = $(json(p));
+      var data = plot_json.data;
+      var layout = plot_json.layout;
+      Plotly.newPlot(gd, data, layout);
+      window.onresize = function() {
+        Plotly.Plots.resize(gd);
+      };
+      return gd;
+    })();
     """
 end
 
