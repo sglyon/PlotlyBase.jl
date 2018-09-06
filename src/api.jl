@@ -17,12 +17,12 @@ Base.size(p::Plot) = (get(p.layout.fields, :width, 800),
                       get(p.layout.fields, :height, 450))
 
 const _TRACE_TYPES = [
-     :area, :bar, :box, :candlestick, :carpet, :choropleth, :contour,
-     :contourcarpet, :heatmap, :heatmapgl, :histogram, :histogram2d,
-     :histogram2dcontour, :mesh3d, :ohlc, :parcoords, :pie,
-     :pointcloud, :sankey, :scatter, :scatter3d, :scattercarpet,
-     :scattergeo, :scattergl, :scattermapbox, :scatterpolar, :scatterpolargl,
-     :scatterternary, :surface, :table, :violin
+    :area, :bar, :box, :candlestick, :carpet, :choropleth, :cone, :contour,
+    :contourcarpet, :heatmap, :heatmapgl, :histogram, :histogram2d,
+    :histogram2dcontour, :mesh3d, :ohlc, :parcoords, :pie, :pointcloud,
+    :sankey, :scatter, :scatter3d, :scattercarpet, :scattergeo, :scattergl,
+    :scattermapbox, :scatterpolar, :scatterpolargl, :scatterternary, :splom,
+    :streamtube, :surface, :table, :violin
 ]
 
 for t in _TRACE_TYPES
