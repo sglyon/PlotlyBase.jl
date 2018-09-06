@@ -46,7 +46,7 @@ function GenericTrace(df::AbstractDataFrame; group=nothing, kind="scatter", kwar
         end
         return GenericTrace[t for t in _traces[:x1]]
     else
-        !isa(group, Void) && warn("Unknown group $(group), skipping")
+        (group !== nothing) && warn("Unknown group $(group), skipping")
     end
 
     for (k, v) in d
