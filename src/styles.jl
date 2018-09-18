@@ -83,7 +83,7 @@ function Style(base::Style;
 end
 
 function Base.show(io::IO, ::MIME"text/plain", s::Style)
-    ctx = IOContext(io, limit=true)
+    ctx = IOContext(io, :limit=>true)
     println(io, "Style with:")
 
     if !isempty(s.layout)
