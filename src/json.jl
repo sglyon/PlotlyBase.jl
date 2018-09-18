@@ -91,8 +91,6 @@ function JSON.lower(p::Plot)
     Dict(:data => p.data, :layout => p.layout)
 end
 
-@require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" JSON.lower(a::Colors.Colorant) = string("#", hex(a))
-
 # Let string interpolation stringify to JSON format
 Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot}) = print(io, JSON.json(a))
 Base.print(io::IO, a::Vector{T}) where {T<:GenericTrace} = print(io, JSON.json(a))

@@ -113,6 +113,7 @@ function __init__()
     end
     @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" include("dataframes_api.jl")
     @require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("distributions.jl")
+    @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" JSON.lower(a::Colors.Colorant) = string("#", Colors.hex(a))
 end
 
 
