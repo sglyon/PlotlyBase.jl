@@ -27,6 +27,9 @@ function Base.getindex(c::Cycler, ixs::AbstractVector{<:Integer})
     [c[i] for i in ixs]
 end
 
+Base.iterate(c::Cycler, s::Int=1) = c[s], s+1
+Base.IteratorSize(::Cycler) = IsInfinite()
+
 struct Style
     layout::Layout
     global_trace::PlotlyAttribute
