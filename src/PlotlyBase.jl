@@ -6,6 +6,7 @@ using DocStringExtensions
 using Requires
 using UUIDs
 using Dates
+using Logging
 
 import Base: ==
 

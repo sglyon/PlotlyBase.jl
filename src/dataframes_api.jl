@@ -43,7 +43,9 @@ function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="sca
         end
         return GenericTrace[t for t in _traces[:x1]]
     else
-        (group !== nothing) && warn("Unknown group $(group), skipping")
+        if (group == nothing)
+            @warn "Unknown group $(group), skipping"
+        end
     end
 
     for (k, v) in d
