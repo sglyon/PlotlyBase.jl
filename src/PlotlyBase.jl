@@ -89,9 +89,6 @@ export
     # convenience stuff
     add_recession_bands!,
 
-    # frontend methods
-    init_notebook,
-
     # styles
     use_style!, style, Style, Cycler,
 
