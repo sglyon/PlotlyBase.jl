@@ -43,13 +43,13 @@ function Style(;
     )
     if !isempty(color_cycle)
         msg = """
-        `color_cycle` argument deprecated. Set the `marker_color` attrbute
+        `color_cycle` argument deprecated. Set the `marker_color` attribute
         on `global_trace` instead using a Cycler like this:
 
         Style(global_trace=attr(marker_color=Cycler($(color_cycle))))
         """
         global_trace[:marker_color] = Cycler(color_cycle)
-        warn(msg)
+        @warn msg
     end
     Style(layout, global_trace, trace)
 end

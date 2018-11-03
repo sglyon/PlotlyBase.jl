@@ -69,7 +69,7 @@ keyword arguments are applied to the constructed trace.
 function Plot(f::Function, x0::Number, x1::Number, l::Layout=Layout();
               style::Style=CURRENT_STYLE[],
               kwargs...)
-    x = linspace(x0, x1, 50)
+    x = range(x0, stop=x1, length=50)
     y = [f(_) for _ in x]
     Plot(GenericTrace(x, y; name=Symbol(f), kwargs...), l, style=style)
 end
@@ -84,7 +84,7 @@ function Plot(fs::AbstractVector{Function}, x0::Number, x1::Number,
               l::Layout=Layout();
               style::Style=CURRENT_STYLE[],
               kwargs...)
-    x = linspace(x0, x1, 50)
+    x = range(x0, stop=x1, length=50)
     traces = GenericTrace[GenericTrace(x, map(f, x); name=Symbol(f), kwargs...)
                           for f in fs]
     Plot(traces, l; style=style)
@@ -104,8 +104,8 @@ Creates a "stem" or "lollipop" trace. It is implemented using plotly.js's
 * stem_thickness - sets the thickness of the stems
 """
 function stem(;y=nothing, stem_color="grey", stem_thickness=1, kwargs...)
-    line_up = -min(y, 0)
-    line_down = max(y, 0)
+    line_up = -min.(y, 0)
+    line_down = max.(y, 0)
     trace = scatter(; y=y, text=y, marker_size=10, mode="markers", hoverinfo="text", kwargs...)
     trace.fields[:error_y] = Dict(
         :type => "data",

@@ -6,6 +6,7 @@ using DocStringExtensions
 using Requires
 using UUIDs
 using Dates
+using Logging
 
 import Base: ==
 
@@ -88,11 +89,8 @@ export
     # convenience stuff
     add_recession_bands!,
 
-    # frontend methods
-    init_notebook,
-
     # styles
-    use_style!, style, Style, Cycler,
+    use_style!, style, Style, Cycler, STYLES,
 
     # other
     savejson, savefig, html_body
