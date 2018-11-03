@@ -90,7 +90,7 @@ export
     add_recession_bands!,
 
     # styles
-    use_style!, style, Style, Cycler,
+    use_style!, style, Style, Cycler, STYLES,
 
     # other
     savejson, savefig, html_body
