@@ -147,7 +147,7 @@ function fivethirtyeight_style()
                     titlefont_size=14)
     colors = ["#008fd5", "#fc4f30", "#e5ae38", "#6d904f",
               "#8b8b8b", "#810f7c"]
-    gta = attr(marker_color=colors)
+    gta = attr(marker_color=Cycler(colors))
     Style(layout=layout, trace=ta, global_trace=gta)
 end
 
@@ -171,7 +171,7 @@ function seaborn_style()
                                 bgcolor="white", bordercolor="white"),
                     titlefont_size=14)
     colors = ["#4C72B0", "#55A868", "#C44E52", "#8172B2", "#CCB974", "#64B5CD"]
-    gta = attr(marker_color=colors)
+    gta = attr(marker_color=Cycler(colors))
     Style(trace=ta, layout=layout, global_trace=gta)
 end
 
@@ -199,7 +199,7 @@ function gadfly_dark_style()
                     titlefont_size=14,
                     margin=attr(l=40, r=10, t=10, b=30))
 
-    gta = attr(marker_color=color_cycle)
+    gta = attr(marker_color=Cycler(color_cycle))
     Style(layout=layout, global_trace=gta)
 end
 
@@ -232,7 +232,7 @@ function tomorrow_night_eighties_style()
                     titlefont_size=14,
                     margin=attr(l=65, r=65, t=65, b=65))
 
-    gta = attr(marker_color=color_cycle)
+    gta = attr(marker_color=Cycler(color_cycle))
     Style(layout=layout, global_trace=gta)
 end
 
