@@ -114,14 +114,16 @@ function ggplot_style()
     axis = attr(showgrid=true, gridcolor="white", linewidth=1.0,
                 linecolor="white", titlefont_color="#555555",
                 titlefont_size=14, ticks="outside",
-                tickcolor="#555555"
+                tickcolor="#555555", automargin=true
                 )
     layout = Layout(plot_bgcolor="#E5E5E5",
                     paper_bgcolor="white",
                     font_size=10,
                     xaxis=axis,
                     yaxis=axis,
-                    titlefont_size=14)
+                    titlefont_size=14,
+		    margin=attr(t=65),
+		    autosize=true)
 
     gta = attr(marker_line_width=0.5, marker_line_color="#348ABD")
 
@@ -136,7 +138,8 @@ function fivethirtyeight_style()
     axis = attr(showgrid=true, gridcolor="#cbcbcb",
                 linewidth=1.0, linecolor="#f0f0f0",
                 ticklen=0.0, tickcolor="#555555", ticks="outside",
-                titlefont_size=12, titlefont_color="#555555")
+                titlefont_size=12, titlefont_color="#555555",
+		automargin=true)
     layout = Layout(plot_bgcolor="#f0f0f0",
                     paper_bgcolor="#f0f0f0",
                     font_size=14,
@@ -144,7 +147,9 @@ function fivethirtyeight_style()
                     yaxis=axis,
                     legend=attr(borderwidth=1.0,
                                 bgcolor="f0f0f0", bordercolor="f0f0f0"),
-                    titlefont_size=14)
+                    titlefont_size=14,
+		    margin=attr(t=65),
+		    autosize=true)
     colors = ["#008fd5", "#fc4f30", "#e5ae38", "#6d904f",
               "#8b8b8b", "#810f7c"]
     gta = attr(marker_color=Cycler(colors))
@@ -158,7 +163,7 @@ function seaborn_style()
     axis = attr(showgrid=true, gridcolor="white",
                 linewidth=1.0, linecolor="white",
                 ticklen=0.0, tickcolor="#555555", ticks="outside", tickfont_size=10,
-                titlefont_size=12, titlefont_color="#555555")
+                titlefont_size=12, titlefont_color="#555555", automargin=true)
     # TODO: no concept of major vs minor ticks...
     layout = Layout(plot_bgcolor="EAEAF2",
                     paper_bgcolor="white",
@@ -169,7 +174,9 @@ function seaborn_style()
                     yaxis=axis,
                     legend=attr(font_size=10,
                                 bgcolor="white", bordercolor="white"),
-                    titlefont_size=14)
+                    titlefont_size=14,
+		    margin=attr(t=65),
+		    autosize=true)
     colors = ["#4C72B0", "#55A868", "#C44E52", "#8172B2", "#CCB974", "#64B5CD"]
     gta = attr(marker_color=Cycler(colors))
     Style(trace=ta, layout=layout, global_trace=gta)
@@ -187,8 +194,8 @@ function gadfly_dark_style()
 
     axis = attr(showgrid=true, gridcolor=grid_color, gridwidth=0.35,
                 linecolor=grid_color, titlefont_color=label_color,
-                linewidth=1.2, titlefont_size=14, tickcolor=label_color
-                )
+                linewidth=1.2, titlefont_size=14, tickcolor=label_color,
+		automargin=true)
 
     layout = Layout(plot_bgcolor=bgcolor,
                     paper_bgcolor=bgcolor,
@@ -197,7 +204,8 @@ function gadfly_dark_style()
                     yaxis=axis,
                     font_color=label_color,
                     titlefont_size=14,
-                    margin=attr(l=40, r=10, t=10, b=30))
+                    margin=attr(l=40, r=65, t=65, b=30),
+		    autosize=true)
 
     gta = attr(marker_color=Cycler(color_cycle))
     Style(layout=layout, global_trace=gta)
@@ -220,8 +228,8 @@ function tomorrow_night_eighties_style()
 
     axis = attr(showgrid=true, gridcolor=grid_color, gridwidth=0.35,
                 linecolor=grid_color, titlefont_color=label_color,
-                linewidth=1.2, titlefont_size=14, tickcolor=label_color
-                )
+                linewidth=1.2, titlefont_size=14, tickcolor=label_color,
+		automargin=true)
 
     layout = Layout(plot_bgcolor=bgcolor,
                     paper_bgcolor=bgcolor,
@@ -230,7 +238,8 @@ function tomorrow_night_eighties_style()
                     yaxis=axis,
                     font_color=label_color,
                     titlefont_size=14,
-                    margin=attr(l=65, r=65, t=65, b=65))
+                    margin=attr(l=65, r=65, t=65, b=65),
+		    autosize=true)
 
     gta = attr(marker_color=Cycler(color_cycle))
     Style(layout=layout, global_trace=gta)
