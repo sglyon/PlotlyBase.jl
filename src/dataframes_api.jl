@@ -1,9 +1,9 @@
 # utilities
 
 _has_group(df::DataFrames.AbstractDataFrame, group::Any) = false
-_has_group(df::DataFrames.AbstractDataFrame, group::Symbol) = haskey(df, group)
+_has_group(df::DataFrames.AbstractDataFrame, group::Symbol) = hasproperty(df, group)
 function _has_group(df::DataFrames.AbstractDataFrame, group::Vector{Symbol})
-    all(x -> haskey(df, x), group)
+    all(x -> hasproperty(df, x), group)
 end
 
 _group_name(df::DataFrames.AbstractDataFrame, group::Symbol) = df[1, group]
@@ -26,7 +26,7 @@ applied to all traces
 Also, when using this routine you can pass a function as a value for any
 keyword argument. This function will be replaced by calling the function on the
 DataFrame. For example, if I were to pass `name=(df) -> "Wage (average =
-\$(mean(df[:X1])))"` then the `name` attribute on the trace would be replaced by
+\$(mean(df[!, :X1])))"` then the `name` attribute on the trace would be replaced by
 the  `Wage (average = XX)`, where `XX` is the average of the `X1` column in the
 DataFrame.
 
@@ -49,8 +49,8 @@ function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="sca
     end
 
     for (k, v) in d
-        if isa(v, Symbol) && haskey(df, v)
-            d[k] = df[v]
+        if isa(v, Symbol) && hasproperty(df, v)
+            d[k] = df[!, v]
         elseif isa(v, Function)
             d[k] = v(df)
         end
