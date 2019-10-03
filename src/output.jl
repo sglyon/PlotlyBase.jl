@@ -35,6 +35,22 @@ function script_content(p::Plot)
     """
 end
 
+
+function savehtml(io::IO, p::Plot)
+    print(io, """
+    <html>
+    <head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+    <body>
+      $(html_body(p))
+    </body>
+    </html>
+    """)
+end
+
+savehtml(p::Plot, fn::AbstractString) = open(f -> savehtml(f, p), fn, "w")
+
 # just declare here so we can overload elsewhere
 function savefig end
 
