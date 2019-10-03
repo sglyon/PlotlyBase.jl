@@ -93,7 +93,7 @@ export
     use_style!, style, Style, Cycler, STYLES,
 
     # other
-    savejson, savefig, html_body
+    savejson, savefig, savehtml, html_body
 
 function __init__()
     env_style = Symbol(get(ENV, "PLOTLYJS_STYLE", ""))
