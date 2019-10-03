@@ -56,7 +56,7 @@ abstract type AbstractShape <: AbstractLayoutAttribute end
 kind(::AbstractPlotlyAttribute) = "PlotlyAttribute"
 
 # TODO: maybe loosen some day
-const _Scalar = Union{Date,Number,AbstractString,Symbol}
+const _Scalar = Union{DateTime,Date,Number,AbstractString,Symbol}
 
 # ------ #
 # Shapes #
