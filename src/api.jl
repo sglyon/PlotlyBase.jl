@@ -22,7 +22,7 @@ const _TRACE_TYPES = [
     :histogram2dcontour, :mesh3d, :ohlc, :parcoords, :pie, :pointcloud,
     :sankey, :scatter, :scatter3d, :scattercarpet, :scattergeo, :scattergl,
     :scattermapbox, :scatterpolar, :scatterpolargl, :scatterternary, :splom,
-    :streamtube, :surface, :table, :violin
+    :streamtube, :surface, :table, :violin, :volume
 ]
 
 for t in _TRACE_TYPES
