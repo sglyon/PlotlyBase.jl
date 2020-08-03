@@ -32,6 +32,7 @@ include("styles.jl")
 mutable struct Plot{TT<:AbstractTrace}
     data::Vector{TT}
     layout::AbstractLayout
+    frames::Vector{PlotlyFrame}
     divid::UUID
     style::Style
 end
@@ -53,14 +54,14 @@ function Plot(;style::Style=CURRENT_STYLE[])
     Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), uuid4(), style)
 end
 
-function Plot(data::AbstractVector{T}, layout=Layout();
+function Plot(data::AbstractVector{T}, layout=Layout(), frames::AbstractVector{PlotlyFrame}=PlotlyFrame[];
               style::Style=CURRENT_STYLE[]) where T<:AbstractTrace
-    Plot(data, layout, uuid4(), style)
+    Plot(data, layout, frames, uuid4(), style)
 end
 
-function Plot(data::AbstractTrace, layout=Layout();
+function Plot(data::AbstractTrace, layout=Layout(), frames::AbstractVector{PlotlyFrame}=PlotlyFrame[];
               style::Style=CURRENT_STYLE[])
-    Plot([data], layout; style=style)
+    Plot([data], layout, frames; style=style)
 end
 
 
@@ -69,7 +70,7 @@ end
 export
 
     # core types
-    Plot, GenericTrace, Layout, Shape, AbstractTrace, AbstractLayout,
+    Plot, GenericTrace, PlotlyFrame, Layout, Shape, AbstractTrace, AbstractLayout,
 
     # plotly.js api methods
     restyle!, relayout!, update!, addtraces!, deletetraces!, movetraces!,
@@ -81,7 +82,7 @@ export
     extendtraces, prependtraces, react,
 
     # helper methods
-    plot, fork, vline, hline, attr,
+    plot, fork, vline, hline, attr, frame, 
 
     # new trace types
     stem,

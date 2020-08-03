@@ -50,6 +50,21 @@ function attr(fields=Dict{Symbol,Any}(); kwargs...)
     s
 end
 
+mutable struct PlotlyFrame{T<:AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
+    fields::T
+    function PlotlyFrame{T}(fields::T) where T
+        !(Symbol("name") in keys(fields)) && @warn("Frame should have a :name field for expected behavior")
+        new{T}(fields)
+    end  
+end
+
+function frame(fields=Dict{Symbol,Any}(); kwargs...)
+    for (k, v) in kwargs
+        fields[k] = v
+    end
+    PlotlyFrame{Dict{Symbol,Any}}(fields)
+end
+
 abstract type AbstractLayoutAttribute <: AbstractPlotlyAttribute end
 abstract type AbstractShape <: AbstractLayoutAttribute end
 
@@ -145,7 +160,7 @@ hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
 # Implementation of getindex and setindex! #
 # ---------------------------------------- #
 
-const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute}
+const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute,PlotlyFrame}
 const _LikeAssociative = Union{PlotlyAttribute,AbstractDict}
 
 #= NOTE: Generate this list with the following code
