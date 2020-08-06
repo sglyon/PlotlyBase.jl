@@ -51,7 +51,7 @@ include("output.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;style::Style=CURRENT_STYLE[])
-    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), uuid4(), style)
+    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), style)
 end
 
 function Plot(data::AbstractVector{T}, layout=Layout(), frames::AbstractVector{PlotlyFrame}=PlotlyFrame[];
