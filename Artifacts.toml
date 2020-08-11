@@ -16,8 +16,7 @@ os = "windows"
     url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.3.1/kaleido_win.tar.gz"
 [[kaleido]]
 arch = "x86_64"
-git-tree-sha1 = "1b00b3c57045b5aa6f088ada460410b67e69d92e"
-libc = "glibc"
+git-tree-sha1 = "eaf6781d8951eda81e75724d9c53b719e680ff30"
 os = "linux"
 
     [[kaleido.download]]

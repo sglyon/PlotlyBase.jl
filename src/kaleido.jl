@@ -1,8 +1,3 @@
-const BIN = let
-    art = artifact"kaleido"
-    `$(joinpath(art, "kaleido", "kaleido")) plotly --disable-gpu`
-end
-
 mutable struct Pipes
     stdin::Pipe
     stdout::Pipe
@@ -27,6 +22,10 @@ end
 function _start_kaleido_process()
     global P
     try
+        BIN = let
+            art = artifact"kaleido"
+            `$(joinpath(art, "kaleido", "kaleido")) plotly --disable-gpu`
+        end
         kstdin = Pipe()
         kstdout = Pipe()
         kstderr = Pipe()
