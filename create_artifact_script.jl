@@ -12,9 +12,10 @@ function unzip(zf_path, dest_path)
     rm(k_path , force=true, recursive=true)
     mkdir(k_path)
     for f in r.files
+        @show f
         out_path = joinpath(dest_path, f.name)
-        if (endswith(f.name, "/") || endswith(f.name, "\\")) && !(isdir(out_path))
-            mkdir(out_path)
+        if (endswith(f.name, "/") || endswith(f.name, "\\"))
+            !isdir(out_path) && mkdir(out_path)
         else
             parent_dir = joinpath(dest_path, dirname(f.name))
             if !isdir(parent_dir)
@@ -48,17 +49,19 @@ function download_kaleido(k_dir, os=_download_os())
     download(url, dest)
     unzip(dest, k_dir)
     rm(dest)  # remove zip file
-    if Sys.islinux()
+    if Sys.isunix() && (os ∈ ["mac", "linux"])
         ex1_path = joinpath(k_dir, "kaleido", "kaleido")
         run(`chmod +x $ex1_path`)
 
-        ex1_path = joinpath(k_dir, "kaleido", "bin", "kaleido")
+        ex2_path = joinpath(k_dir, "kaleido", "bin", "kaleido")
         run(`chmod +x $ex2_path`)
     end
     return
 end
 
 for platform in [Linux(:x86_64), MacOS(:x86_64), Windows(:x86_64)]
+# for platform in [MacOS(:x86_64)]
+    @show platform
     kaleido_hash = artifact_hash("kaleido", artifact_toml, platform=platform)
     # If the name was not bound, or the hash it was bound to does not exist, create it!
     if kaleido_hash === nothing || !artifact_exists(kaleido_hash)
