@@ -7,6 +7,8 @@ using Requires
 using UUIDs
 using Dates
 using Logging
+using Base64
+using Pkg.Artifacts
 
 import Base: ==
 
@@ -47,6 +49,7 @@ include("api.jl")
 include("convenience_api.jl")
 include("recession_bands.jl")
 include("output.jl")
+include("kaleido.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;style::Style=CURRENT_STYLE[])
@@ -101,6 +104,7 @@ function __init__()
         global DEFAULT_STYLE
         DEFAULT_STYLE[] = Style(env_style)
     end
+    _start_kaleido_process()
     @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
         function IJulia.display_dict(p::Plot)
             Dict(
@@ -113,6 +117,5 @@ function __init__()
     @require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("distributions.jl")
     @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" JSON.lower(a::Colors.Colorant) = string("#", Colors.hex(a))
 end
-
 
 end # module
