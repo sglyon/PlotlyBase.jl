@@ -24,7 +24,9 @@ function _start_kaleido_process()
     try
         BIN = let
             art = artifact"kaleido"
-            `$(joinpath(art, "kaleido", "kaleido")) plotly --disable-gpu`
+            suff = Sys.isunix() ? "" : ".cmd"
+            cmd = joinpath(art, "kaleido", "kaleido$(suff)")
+            `$(cmd) plotly --disable-gpu`
         end
         kstdin = Pipe()
         kstdout = Pipe()
