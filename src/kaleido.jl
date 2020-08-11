@@ -1,4 +1,7 @@
-const BIN = `$(joinpath(artifact"kaleido", "kaleido", "kaleido")) plotly --disable-gpu`
+const BIN = let
+    art = artifact"kaleido"
+    `$(joinpath(art, "kaleido", "kaleido")) plotly --disable-gpu`
+end
 
 mutable struct Pipes
     stdin::Pipe
