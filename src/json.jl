@@ -88,7 +88,7 @@ function JSON.lower(p::Plot)
             end
         end
     end
-    Dict(:data => p.data, :layout => p.layout)
+    Dict(:data => p.data, :layout => p.layout, :frames=>p.frames)
 end
 
 # Let string interpolation stringify to JSON format

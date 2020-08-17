@@ -24,9 +24,7 @@ function script_content(p::Plot)
         })
         .node();
       var plot_json = $(json(p));
-      var data = plot_json.data;
-      var layout = plot_json.layout;
-      Plotly.newPlot(gd, data, layout);
+      Plotly.newPlot(gd, plot_json);
       window.onresize = function() {
         Plotly.Plots.resize(gd);
       };
