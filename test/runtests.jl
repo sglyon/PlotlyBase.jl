@@ -40,12 +40,8 @@ macro includetests(testarg...)
 end
 
 
-#try
-    @testset "PlotlyJS Tests" begin
-        @includetests ARGS
-    end
-#catch
-#    exit(-1)
-#end
+@testset "PlotlyJS Tests" begin
+    @includetests ARGS
+end
 
 end

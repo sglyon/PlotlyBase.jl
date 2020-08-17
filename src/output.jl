@@ -80,4 +80,9 @@ function Base.show(io::IO, ::MIME"text/plain", p::Plot)
     """)
 end
 
+function Base.show(io::IO, ::MIME"application/vnd.plotly.v1+json", p::Plot)
+    print(io, JSON.lower(p))
+end
+
+
 Base.show(io::IO, p::Plot) = show(io, MIME("text/plain"), p)

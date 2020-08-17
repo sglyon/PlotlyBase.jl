@@ -8,7 +8,7 @@ end
 
 const P = Pipes()
 
-const ALL_FORMATS = ["png", "jpg", "jpeg", "webp", "svg", "pdf", "eps", "json"]
+const ALL_FORMATS = ["png", "jpeg", "webp", "svg", "pdf", "eps", "json"]
 const TEXT_FORMATS = ["svg", "json", "eps"]
 
 function _restart_kaleido_process()
@@ -153,3 +153,25 @@ end
 
 _kaleido_running() = isopen(P.stdin) && process_running(P.proc)
 _ensure_kaleido_running() = !_kaleido_running() && _restart_kaleido_process()
+
+const _KALEIDO_MIMES = Dict(
+    "application/pdf" => "pdf",
+    "image/png" => "png",
+    "image/svg+xml" => "svg",
+    "image/eps" => "eps",
+    "image/jpeg" => "jpeg",
+    "image/jpeg" => "jpeg",
+    "application/json" => "json",
+    "application/json; charset=UTF-8" => "json",
+)
+
+for (mime, fmt) in _KALEIDO_MIMES
+    @eval function Base.show(
+        io::IO, ::MIME{Symbol($mime)}, plt::Plot,
+        width::Union{Nothing,Int}=nothing,
+        height::Union{Nothing,Int}=nothing,
+        scale::Union{Nothing,Real}=nothing,
+    )
+        savefig(io, plt, format = $fmt)
+    end
+end
