@@ -41,7 +41,7 @@ end
 
 @testset "test setindex!, getindex methods" begin
     f = M.frame(;name="test", x=1:5, y=1:5, visible=false)
-    
+
     f[:visible] = true
     @test length(f.fields) == 4
     @test haskey(f.fields, :visible)
@@ -226,4 +226,19 @@ end
 
     # error on 5 levels
     @test_throws MethodError f["marker.colorbar.tickfont.family.foo"] = :bar
+end
+
+
+@testset "create plot with frames" begin
+    # https://plotly.com/python/animations/
+    p = Plot(
+        [scatter(x=0:1, y=0:1)],
+        Layout(xaxis=attr(range=(0,5), autorange=false), yaxis=attr(range=(0,5), autorange=false), title="start title", updatemenus=[attr(type="buttons", buttons=[attr(label="Play", method="animate", args=[nothing])])]),
+        [
+            frame(name=:f1, data=[scatter(x=1:2, y=1:2)]),
+            frame(name=:f2, data=[scatter(x=1:4, y=1:4)]),
+            frame(name=:f3, data=[scatter(x=3:4, y=3:4)], layout=Layout(title_text="End Title")),
+        ]
+    )
+    @test p isa Plot
 end

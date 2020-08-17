@@ -29,10 +29,10 @@ include("traces_layouts.jl")
 include("styles.jl")
 
 # core plot object
-mutable struct Plot{TT<:AbstractTrace}
-    data::Vector{TT}
-    layout::AbstractLayout
-    frames::Vector{PlotlyFrame}
+mutable struct Plot{TT<:AbstractVector{<:AbstractTrace},TL<:AbstractLayout,TF<:AbstractVector{<:PlotlyFrame}}
+    data::TT
+    layout::TL
+    frames::TF
     divid::UUID
     style::Style
 end
@@ -54,12 +54,12 @@ function Plot(;style::Style=CURRENT_STYLE[])
     Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), style)
 end
 
-function Plot(data::AbstractVector{T}, layout=Layout(), frames::AbstractVector{PlotlyFrame}=PlotlyFrame[];
-              style::Style=CURRENT_STYLE[]) where T<:AbstractTrace
+function Plot(data::AbstractVector{<:AbstractTrace}, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
+              style::Style=CURRENT_STYLE[])
     Plot(data, layout, frames, uuid4(), style)
 end
 
-function Plot(data::AbstractTrace, layout=Layout(), frames::AbstractVector{PlotlyFrame}=PlotlyFrame[];
+function Plot(data::AbstractTrace, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
               style::Style=CURRENT_STYLE[])
     Plot([data], layout, frames; style=style)
 end
@@ -82,7 +82,7 @@ export
     extendtraces, prependtraces, react,
 
     # helper methods
-    plot, fork, vline, hline, attr, frame, 
+    plot, fork, vline, hline, attr, frame,
 
     # new trace types
     stem,

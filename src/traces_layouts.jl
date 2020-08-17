@@ -55,7 +55,7 @@ mutable struct PlotlyFrame{T<:AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribu
     function PlotlyFrame{T}(fields::T) where T
         !(Symbol("name") in keys(fields)) && @warn("Frame should have a :name field for expected behavior")
         new{T}(fields)
-    end  
+    end
 end
 
 function frame(fields=Dict{Symbol,Any}(); kwargs...)
@@ -164,14 +164,14 @@ const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute,PlotlyFrame}
 const _LikeAssociative = Union{PlotlyAttribute,AbstractDict}
 
 #= NOTE: Generate this list with the following code
-using JSON, PlotlyJS
+using JSON, PlotlyJS, PlotlyBase
 d = JSON.parsefile(Pkg.dir("PlotlyJS", "deps", "plotschema.json"))
-d = PlotlyJS._symbol_dict(d)
+d = PlotlyBase._symbol_dict(d)
 
 nms = Set{Symbol}()
 function add_to_names!(d::AbstractDict)
-    map(add_to_names!, keys(d))
-    map(add_to_names!, values(d))
+    map(add_to_names!, collect(keys(d)))
+    map(add_to_names!, collect(values(d)))
     nothing
 end
 add_to_names!(s::Symbol) = push!(nms, s)
@@ -191,7 +191,7 @@ _UNDERSCORE_ATTRS = collect(
 
 =#
 const _UNDERSCORE_ATTRS = [:error_x, :copy_ystyle, :error_z, :plot_bgcolor,
-                           :paper_bgcolor, :copy_zstyle, :error_y]
+                           :paper_bgcolor, :copy_zstyle, :error_y, :hr_name]
 
 function Base.merge(hf::HasFields, d::Dict)
     out = deepcopy(hf)
