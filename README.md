@@ -10,7 +10,7 @@ This is the plot making guts of [PlotlyJS.jl](https://github.com/sglyon/PlotlyJS
 
 Docs for this package are forthcoming, but check out the following sections of the PlotlyJS.jl docs (or just use PlotlyJS.jl):
 
-- [Preliminaries](http://spencerlyon.com/PlotlyJS.jl/basics/)
-- [Building Blocks](http://spencerlyon.com/PlotlyJS.jl/building_traces_layouts/)
-- [Putting it together](http://spencerlyon.com/PlotlyJS.jl/syncplots/) up until the discussion of syncplots.
-- [Styles](http://spencerlyon.com/PlotlyJS.jl/styles/)
+- [Preliminaries](http://juliaplots.org/PlotlyJS.jl/basics/)
+- [Building Blocks](http://juliaplots.org/PlotlyJS.jl/building_traces_layouts/)
+- [Putting it together](http://juliaplots.org/PlotlyJS.jl/syncplots/) up until the discussion of syncplots.
+- [Styles](http://juliaplots.org/PlotlyJS.jl/styles/)

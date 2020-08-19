@@ -12,7 +12,7 @@ const ALL_FORMATS = ["png", "jpeg", "webp", "svg", "pdf", "eps", "json"]
 const TEXT_FORMATS = ["svg", "json", "eps"]
 
 function _restart_kaleido_process()
-    if process_running(P.proc)
+    if isdefined(P, :proc) && process_running(P.proc)
         kill(P.proc)
     end
     _start_kaleido_process()
@@ -111,6 +111,22 @@ function savefig(
     end
 end
 
+"""
+    savefig(
+        io::IO,
+        p::Plot;
+        width::Union{Nothing,Int}=nothing,
+        height::Union{Nothing,Int}=nothing,
+        scale::Union{Nothing,Real}=nothing,
+        format::String="png"
+    )
+
+Save a plot `p` to the io stream `io`. They keyword argument `format`
+determines the type of data written to the figure and must be one of
+$(join(ALL_FORMATS, ", ")), or html. `scale` sets the
+image scale. `width` and `height` set the dimensions, in pixels. Defaults
+are taken from `p.layout`, or supplied by plotly
+"""
 function savefig(io::IO,
         p::Plot;
         width::Union{Nothing,Int}=nothing,
@@ -125,10 +141,16 @@ function savefig(io::IO,
 end
 
 """
-    savefig(p::Plot, fn::AbstractString; format=nothing, scale=nothing,
-    width=nothing, height=nothing)
+    savefig(
+        p::Plot, fn::AbstractString;
+        format::Union{Nothing,String}=nothing,
+        width::Union{Nothing,Int}=nothing,
+        height::Union{Nothing,Int}=nothing,
+        scale::Union{Nothing,Real}=nothing,
+    )
+
 Save a plot `p` to a file named `fn`. If `format` is given and is one of
-(png, jpeg, webp, svg, pdf, eps), it will be the format of the file. By
+$(join(ALL_FORMATS, ", ")), or html; it will be the format of the file. By
 default the format is guessed from the extension of `fn`. `scale` sets the
 image scale. `width` and `height` set the dimensions, in pixels. Defaults
 are taken from `p.layout`, or supplied by plotly
