@@ -10,5 +10,5 @@ jobs:
       - uses: JuliaRegistries/TagBot@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ssh: ${{ secrets.COMPATHELPER_PRIV }}
+          ssh: ${{ secrets.TAGBOT_PRIVATE }}
           branches: true
