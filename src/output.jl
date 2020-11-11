@@ -38,7 +38,7 @@ function savehtml(io::IO, p::Plot)
     print(io, """
     <html>
     <head>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-1.54.7.min.js"></script>
     </head>
     <body>
       $(html_body(p))
