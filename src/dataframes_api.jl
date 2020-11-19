@@ -38,10 +38,8 @@ different mean for each group.
 function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="scatter", kwargs...)
     d = Dict{Symbol,Any}(kwargs)
     if _has_group(df, group)
-        _traces = DataFrames.by(df, group) do dfg
-            GenericTrace(dfg; kind=kind, name=_group_name(dfg, group), kwargs...)
-        end
-        return GenericTrace[t for t in _traces[:x1]]
+        _traces = map(dfg -> GenericTrace(dfg; kind=kind, name=_group_name(dfg, group), kwargs...), DataFrames.groupby(df, group))
+        return GenericTrace[t for t in _traces]
     else
         if (group !== nothing)
             @warn "Unknown group $(group), skipping"
