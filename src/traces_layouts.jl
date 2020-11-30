@@ -14,13 +14,15 @@ function GenericTrace(kind::Union{AbstractString,Symbol},
     gt
 end
 
-const _layout_defaults = Dict{Symbol,Any}(:margin => Dict(:l=>50, :r=>50, :t=>60, :b=>50))
+function _layout_defaults()
+    Dict{Symbol,Any}(:margin => Dict(:l=>50, :r=>50, :t=>60, :b=>50))
+end
 
 mutable struct Layout{T<:AbstractDict{Symbol,Any}} <: AbstractLayout
     fields::T
 
     function Layout{T}(fields::T; kwargs...) where T
-        l = new{T}(merge(_layout_defaults, fields))
+        l = new{T}(merge(_layout_defaults(), fields))
         foreach(x->setindex!(l, x[2], x[1]), kwargs)
         l
     end

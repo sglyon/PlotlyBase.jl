@@ -30,6 +30,10 @@ ps2 = M.Style(layout=M.Layout(font_family="Helvetica"))
             want = gg.layout[:font]
             want[:family] = "Source Code Pro"
             @test ps4.layout[k] == ps5.layout[k] == want
+        elseif k == :margin
+            @test gg.layout[k] == Dict(:l=>50, :b=>:50, :r=>50, :t=>65)
+            @test ps4.layout[k] == Dict(:l=>50, :b=>:50, :r=>50, :t=>60)
+            @test ps5.layout[k] == Dict(:l=>50, :b=>:50, :r=>50, :t=>65)
         else
             @test ps4.layout[k] == ps5.layout[k] == gg.layout[k]
         end
