@@ -302,6 +302,6 @@ end
 @testset "test margin" begin
     l1 = Layout(;margin=attr(l=120, t=120, b=120, r=120))
     l2 = Layout(;margin=attr(l=60, t=60, b=60, r=60))
-    @test l1[:margin] == Dict(:l => 60,:b => 60,:r => 60,:t => 60)
+    @test l1[:margin] == Dict(:l => 120,:b => 120,:r => 120,:t => 120)
     @test l2[:margin] == Dict(:l => 60,:b => 60,:r => 60,:t => 60)
 end
