@@ -47,15 +47,15 @@ function _start_kaleido_process()
         # read startup message and check for errors
         res = readline(P.stdout)
         if length(res) == 0
-            error("Could not start Kaledio process")
+            error("Could not start Kaleido process")
         end
 
         js = JSON.parse(res)
         if get(js, "code", 0) != 0
-            error("Could not start Kaledio process")
+            error("Could not start Kaleido process")
         end
     catch
-        @warn "Kaledio is not available on this system. Julia will be unable to produce any plots."
+        @warn "Kaleido is not available on this system. Julia will be unable to produce any plots."
     end
     nothing
 end
