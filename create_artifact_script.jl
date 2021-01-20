@@ -2,7 +2,15 @@ using Pkg.Artifacts, ghr_jll
 using Pkg.BinaryPlatforms
 import ZipFile
 
-release_tag = "v0.3.1"
+release_tag = "v0.5.0"
+
+const PLATFORMS = Dict(
+    Linux(:aarch64) => "linux_arm64",
+    Linux(:x86_64) => "linux_x64",
+    MacOS(:x86_64) => "mac",
+    Windows(:x86_64) => "win_x64",
+    Windows(:i686) => "win_x86",
+)
 
 artifact_toml = joinpath(@__DIR__, "Artifacts.toml")
 
@@ -29,27 +37,23 @@ function unzip(zf_path, dest_path)
     close(r)
 end
 
-_download_os(::Linux) = "linux"
-_download_os(::MacOS) = "mac"
-_download_os(::Windows) = "win"
-
-function _download_os()
-    if Sys.isunix()
-        return Sys.isapple() ? "mac" : "linux"
+function _download_os_arch(k_platform=platform_key_abi())
+    keys_platforms = keys(PLATFORMS) |> collect
+    os_arch = findfirst(x->platforms_match(x, k_platform), keys_platforms)
+    if !isnothing(os_arch)
+        return PLATFORMS[keys_platforms[os_arch]]
     end
-    if Sys.iswindows()
-        return "win"
-    end
-    error("Only mac, linux, and windows are supported")
+    str_platforms = join(string.(keys_platforms), ", ", " and ")
+    error("Only $(str_platforms) are supported")
 end
 
-function download_kaleido(k_dir, os=_download_os())
-    url = "https://github.com/plotly/Kaleido/releases/download/v0.0.3/kaleido_$os-0.0.3.zip"
+function download_kaleido(k_dir, os_arch=_download_os_arch())
+    url = "https://github.com/plotly/Kaleido/releases/download/v0.1.0/kaleido_$os_arch.zip"
     dest = joinpath(k_dir, "kaleido.zip")
     download(url, dest)
     unzip(dest, k_dir)
     rm(dest)  # remove zip file
-    if Sys.isunix() && (os ∈ ["mac", "linux"])
+    if Sys.isunix() && any(contains.(os_arch, ["mac", "linux"]))
         ex1_path = joinpath(k_dir, "kaleido", "kaleido")
         run(`chmod +x $ex1_path`)
 
@@ -59,7 +63,7 @@ function download_kaleido(k_dir, os=_download_os())
     return
 end
 
-for platform in [Linux(:x86_64), MacOS(:x86_64), Windows(:x86_64)]
+for platform in keys(PLATFORMS)
 # for platform in [MacOS(:x86_64)]
     @show platform
     kaleido_hash = artifact_hash("kaleido", artifact_toml, platform=platform)
@@ -67,12 +71,12 @@ for platform in [Linux(:x86_64), MacOS(:x86_64), Windows(:x86_64)]
     if kaleido_hash === nothing || !artifact_exists(kaleido_hash)
         # create_artifact() returns the content-hash of the artifact directory once we're finished creating it
         kaleido_hash = create_artifact() do k_dir
-            download_kaleido(k_dir, _download_os(platform))
+            download_kaleido(k_dir, _download_os_arch(platform))
         end
     end
 
     local tarball_hash
-    gz_name = "kaleido_$(_download_os(platform)).tar.gz"
+    gz_name = "kaleido_$(_download_os_arch(platform)).tar.gz"
     mktempdir() do dir
         gz_path = joinpath(dir, gz_name)
         tarball_hash = archive_artifact(kaleido_hash, gz_path)
