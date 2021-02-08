@@ -1,6 +1,6 @@
 using Pkg.Artifacts, ghr_jll
 using Pkg.BinaryPlatforms
-import ZipFile
+using InfoZIP: unzip
 
 release_tag = "v0.5.0"
 
@@ -13,29 +13,6 @@ const PLATFORMS = Dict(
 )
 
 artifact_toml = joinpath(@__DIR__, "Artifacts.toml")
-
-function unzip(zf_path, dest_path)
-    r = ZipFile.Reader(zf_path)
-    k_path = joinpath(dest_path, "kaleido")
-    rm(k_path , force=true, recursive=true)
-    mkdir(k_path)
-    for f in r.files
-        @show f
-        out_path = joinpath(dest_path, f.name)
-        if (endswith(f.name, "/") || endswith(f.name, "\\"))
-            !isdir(out_path) && mkdir(out_path)
-        else
-            parent_dir = joinpath(dest_path, dirname(f.name))
-            if !isdir(parent_dir)
-                mkpath(parent_dir)
-            end
-            v = Vector{UInt8}(undef, f.uncompressedsize)
-            read!(f, v)
-            write(out_path, v)
-        end
-    end
-    close(r)
-end
 
 function _download_os_arch(k_platform=platform_key_abi())
     keys_platforms = keys(PLATFORMS) |> collect
@@ -54,10 +31,10 @@ function download_kaleido(k_dir, os_arch=_download_os_arch())
     unzip(dest, k_dir)
     rm(dest)  # remove zip file
     if Sys.isunix() && any(contains.(os_arch, ["mac", "linux"]))
-        ex1_path = joinpath(k_dir, "kaleido", "kaleido")
+        ex1_path = joinpath(k_dir, "kaleido")
         run(`chmod +x $ex1_path`)
 
-        ex2_path = joinpath(k_dir, "kaleido", "bin", "kaleido")
+        ex2_path = joinpath(k_dir, "bin", "kaleido")
         run(`chmod +x $ex2_path`)
     end
     return

@@ -1,25 +1,42 @@
 [[kaleido]]
 arch = "x86_64"
+git-tree-sha1 = "6913cdcc09a89f24812a76ff462747269b4a9240"
+os = "windows"
+
+    [[kaleido.download]]
+    sha256 = "70865481e53eb373c09f8dcc3e318be86008bf52932018d25e695f4fa09f58a6"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_win_x64.tar.gz"
+[[kaleido]]
+arch = "x86_64"
+git-tree-sha1 = "513ca13deb2b963957c730e2ea4c53be58bf41f6"
+os = "macos"
+
+    [[kaleido.download]]
+    sha256 = "5184f439563dde633eec97aa13c59fd959e2eda23d788ede77bef4ff88ee5db1"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_mac.tar.gz"
+[[kaleido]]
+arch = "aarch64"
+git-tree-sha1 = "951484fc7c17437fd9c0dff6b9a4eba01a5ac10a"
+libc = "glibc"
+os = "linux"
+
+    [[kaleido.download]]
+    sha256 = "78846d6c07167adf18b5a5b7b2a5c7669e4bc4f35f44d54ac8854dc483f3d0a3"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_linux_arm64.tar.gz"
+[[kaleido]]
+arch = "x86_64"
 git-tree-sha1 = "eaf6781d8951eda81e75724d9c53b719e680ff30"
 libc = "glibc"
 os = "linux"
 
     [[kaleido.download]]
-    sha256 = "5ac2071a3b8994a25c854cedc84bcf5b1a90e7aee2347de45f778bbb264fdd6a"
-    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.3.1/kaleido_linux.tar.gz"
+    sha256 = "b034f442d9b073ef19e23ef0f035b5143a84b9de5d41b2ae9ab9f008fd531301"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_linux_x64.tar.gz"
 [[kaleido]]
-arch = "x86_64"
-git-tree-sha1 = "446336b110990287685afab2806bec8ab562b360"
-os = "macos"
-
-    [[kaleido.download]]
-    sha256 = "d7666898169d7e95564669b96860346c85b5f10a1561f073cd026cc9658b16df"
-    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.3.1/kaleido_mac.tar.gz"
-[[kaleido]]
-arch = "x86_64"
-git-tree-sha1 = "c959551ad0b7f5c1c33b9cb31baa203bcad3a1af"
+arch = "i686"
+git-tree-sha1 = "ffeafe9096778716a98254fbd19fe25303be30a5"
 os = "windows"
 
     [[kaleido.download]]
-    sha256 = "9013a52c621293247331bd8280df95e73e3d30c313de378c1524c0c0707e13dd"
-    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.3.1/kaleido_win.tar.gz"
+    sha256 = "e26be3569b827fd98c937422b24b7b4673828c063421b27e77b55b1e5b12fb31"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_win_x86.tar.gz"
