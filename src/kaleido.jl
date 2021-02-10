@@ -24,7 +24,6 @@ function _start_kaleido_process()
     try
         BIN = let
             art = artifact"kaleido"
-            path = 
             cmd = (
                 Sys.isunix() ? 
                 joinpath(art, "kaleido", "kaleido") : 
