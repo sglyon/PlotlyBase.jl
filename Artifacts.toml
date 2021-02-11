@@ -1,20 +1,4 @@
 [[kaleido]]
-arch = "i686"
-git-tree-sha1 = "ffeafe9096778716a98254fbd19fe25303be30a5"
-os = "windows"
-
-    [[kaleido.download]]
-    sha256 = "e26be3569b827fd98c937422b24b7b4673828c063421b27e77b55b1e5b12fb31"
-    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_win_x86.tar.gz"
-[[kaleido]]
-arch = "x86_64"
-git-tree-sha1 = "6913cdcc09a89f24812a76ff462747269b4a9240"
-os = "windows"
-
-    [[kaleido.download]]
-    sha256 = "70865481e53eb373c09f8dcc3e318be86008bf52932018d25e695f4fa09f58a6"
-    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_win_x64.tar.gz"
-[[kaleido]]
 arch = "aarch64"
 git-tree-sha1 = "951484fc7c17437fd9c0dff6b9a4eba01a5ac10a"
 libc = "glibc"
@@ -40,3 +24,19 @@ os = "linux"
     [[kaleido.download]]
     sha256 = "b034f442d9b073ef19e23ef0f035b5143a84b9de5d41b2ae9ab9f008fd531301"
     url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_linux_x64.tar.gz"
+[[kaleido]]
+arch = "x86_64"
+git-tree-sha1 = "e59b69146f22d02079c8bf816e098c3de3b04fdd"
+os = "windows"
+
+    [[kaleido.download]]
+    sha256 = "34d529cdb5222df629a34da73f08e37d77061eb963e6a4726ba2897ebcd3f0ae"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_win_x64.tar.gz"
+[[kaleido]]
+arch = "i686"
+git-tree-sha1 = "76352e01edb575bb8d9b29b6cc0ca4a2049c237e"
+os = "windows"
+
+    [[kaleido.download]]
+    sha256 = "da591d9ab033230c3a3ac7d366251c18ce90d165444f422ddc4e3fb38e447177"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_win_x86.tar.gz"

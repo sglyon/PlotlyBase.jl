@@ -25,8 +25,8 @@ function _start_kaleido_process()
         BIN = let
             art = artifact"kaleido"
             cmd = (
-                Sys.isunix() ? 
-                joinpath(art, "kaleido", "kaleido") : 
+                Sys.isunix() ?
+                joinpath(art, "kaleido", "kaleido") :
                 joinpath(art, "kaleido.cmd")
             )
             `$(cmd) plotly --disable-gpu`
@@ -57,8 +57,9 @@ function _start_kaleido_process()
         if get(js, "code", 0) != 0
             error("Could not start Kaleido process")
         end
-    catch
-        @warn "Kaleido is not available on this system. Julia will be unable to produce any plots."
+    catch e
+        @warn "Kaleido is not available on this system. Julia will be unable to save images of any plots."
+        @warn "$e"
     end
     nothing
 end

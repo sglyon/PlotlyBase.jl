@@ -38,17 +38,25 @@ function download_kaleido(k_dir, os_arch=_download_os_arch())
         ex2_path = joinpath(k_dir, "bin", "kaleido")
         run(`chmod +x $ex2_path`)
     end
+    if Sys.iswindows() && contains(os_arch, "win")
+        ex1_path = joinpath(k_dir, "kaleido.cmd")
+        println("Making executable!")
+        run(`icacls.exe $ex1_path /grant Everyone:rx`)
+
+        ex2_path = joinpath(k_dir, "bin", "kaleido.exe")
+        run(`icacls.exe $ex2_path /grant Everyone:rx`)
+    end
     return
 end
 
 function run_for_platform(platform)
     # for platform in [MacOS(:x86_64)]
     @show platform
-    kaleido_hash = artifact_hash("kaleido", artifact_toml, platform=platform)
+    @show kaleido_hash = artifact_hash("kaleido", artifact_toml, platform=platform)
     # If the name was not bound, or the hash it was bound to does not exist, create it!
     if kaleido_hash === nothing || !artifact_exists(kaleido_hash)
         # create_artifact() returns the content-hash of the artifact directory once we're finished creating it
-        kaleido_hash = create_artifact() do k_dir
+        @show kaleido_hash = create_artifact() do k_dir
             download_kaleido(k_dir, _download_os_arch(platform))
         end
     end
