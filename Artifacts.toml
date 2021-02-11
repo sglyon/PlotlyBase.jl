@@ -17,7 +17,7 @@ os = "macos"
     url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/v0.5.0/kaleido_mac.tar.gz"
 [[kaleido]]
 arch = "x86_64"
-git-tree-sha1 = "eaf6781d8951eda81e75724d9c53b719e680ff30"
+git-tree-sha1 = "d9c80da1a4081aa2b4da0eee07d040028997837d"
 libc = "glibc"
 os = "linux"
 
