@@ -25,8 +25,9 @@ function _start_kaleido_process()
         BIN = let
             art = artifact"kaleido"
             cmd = (
-                Sys.isunix() ?
+                Sys.islinux() ?
                 joinpath(art, "kaleido", "kaleido") :
+                Sys.isapple() ? joinpath(art, "kaleido") : 
                 joinpath(art, "kaleido.cmd")
             )
             `$(cmd) plotly --disable-gpu`
