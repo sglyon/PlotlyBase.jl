@@ -1,3 +1,5 @@
+using Kaleido_jll
+
 mutable struct Pipes
     stdin::Pipe
     stdout::Pipe
@@ -23,13 +25,13 @@ function _start_kaleido_process()
     global P
     try
         BIN = let
-            art = artifact"kaleido"
-            cmd = (
-                Sys.islinux() ?
-                joinpath(art, "kaleido", "kaleido") :
-                Sys.isapple() ? joinpath(art, "kaleido") : 
+            art = Kaleido_jll.artifact_dir
+            cmd = if Sys.islinux() || Sys.isapple()
+                joinpath(art, "kaleido")
+            else
+                # Windows
                 joinpath(art, "kaleido.cmd")
-            )
+            end
             `$(cmd) plotly --disable-gpu`
         end
         kstdin = Pipe()
