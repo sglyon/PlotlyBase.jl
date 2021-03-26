@@ -32,7 +32,7 @@ function _start_kaleido_process()
                 # Windows
                 joinpath(art, "kaleido.cmd")
             end
-            `$(cmd) plotly --disable-gpu`
+            `$(cmd) plotly --disable-gpu --single-process` # --single-process is needed for MacOS.
         end
         kstdin = Pipe()
         kstdout = Pipe()
