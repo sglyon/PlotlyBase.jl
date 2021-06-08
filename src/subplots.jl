@@ -113,7 +113,7 @@ function _cat(rows::Tuple{Vararg{Int}}, ps::Plot...)
     Plot(vcat([p.data for p in copied_plots]...), layout)
 end
 
-_cat(nr::Int, nc::Int, ps::Plot...) = _cat(tuple(fill(nc, nr)), ps::Plot...)
+_cat(nr::Int, nc::Int, ps::Plot...) = _cat(Tuple(fill(nc, nr)), ps...)
 
 Base.hcat(ps::Plot...) = _cat(1, length(ps), ps...)
 Base.vcat(ps::Plot...) = _cat(length(ps), 1,  ps...)
