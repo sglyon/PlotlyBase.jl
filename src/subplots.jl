@@ -15,33 +15,37 @@ function sizes(nr::Int, nc::Int, subplot_titles::Bool=false)
     width, height, vspace, hspace
 end
 
-function gen_layout(nr, nc, subplot_titles::Bool=false)
-    w, h, dy, dx = sizes(nr, nc, subplot_titles)
-
+function gen_layout(rows::Tuple{Vararg{Int}}, subplot_titles::Bool=false)
+    
     x = 0.0  # start from left
     y = 1.0  # start from top
-
+    
     out = Layout()
-    for col in 1:nc
 
-        y = 1.0 # reset y as we start a new col
-        for row in 1:nr
-            subplot = LinearIndices((nc, nr))[col, row]
+    subplot = 1
+    nr = length(rows)
+    for nc in rows
+        w, h, dy, dx = sizes(nr, nc, subplot_titles)
+        x = 0.0 # reset x as we start a new row
+        for col in 1:nc
 
             out["xaxis$subplot"] = Dict{Any,Any}(:domain=>[x, x+w],
                                                  :anchor=> "y$subplot")
             out["yaxis$subplot"] = Dict{Any,Any}(:domain=>[y-h, y],
                                                  :anchor=> "x$subplot")
 
-            y -= nr == 1 ? 0.0 : h + dy
+            x += nc == 1 ? 0.0 : w + dx
+            subplot += 1
          end
-
-         x += nc == 1 ? 0.0 : w + dx
+         y -= nr == 1 ? 0.0 : h + dy
     end
 
     out
 
 end
+
+gen_layout(nr::Int, nc::Int, subplot_titles::Bool=false) = gen_layout(tuple(fill(nc, nr)), subplot_titles)
+
 
 function handle_titles!(big_layout, sub_layout, ix::Int)
     # don't worry about it if the sub_layout doesn't have a title
@@ -77,14 +81,13 @@ _is3d(s::AbstractString) = s in ["surface", "mesh3d", "scatter3d"]
 # else (maybe if trace didn't have a :type field set)
 _is3d(x::Any)= false
 
-function _cat(nr::Int, nc::Int, ps::Plot...)
+function _cat(rows::Tuple{Vararg{Int}}, ps::Plot...)
     copied_plots = Plot[copy(p) for p in ps]
     subplot_titles = any(map(x -> haskey(x.layout.fields, :title) ||
                                   haskey(x.layout.fields, "title"), ps))
-    layout = gen_layout(nr, nc, subplot_titles)
+    layout = gen_layout(rows, subplot_titles)
 
-    for col in 1:nc, row in 1:nr
-        ix = LinearIndices((nc, nr))[col, row]
+    for ix in 1:sum(rows)
         handle_titles!(layout, copied_plots[ix].layout, ix)
         layout["xaxis$ix"] = merge(copied_plots[ix].layout["xaxis"], layout["xaxis$ix"])
         layout["yaxis$ix"] = merge(copied_plots[ix].layout["yaxis"], layout["yaxis$ix"])
@@ -110,16 +113,10 @@ function _cat(nr::Int, nc::Int, ps::Plot...)
     Plot(vcat([p.data for p in copied_plots]...), layout)
 end
 
+_cat(nr::Int, nc::Int, ps::Plot...) = _cat(tuple(fill(nc, nr)), ps::Plot...)
+
 Base.hcat(ps::Plot...) = _cat(1, length(ps), ps...)
 Base.vcat(ps::Plot...) = _cat(length(ps), 1,  ps...)
 Base.vect(ps::Plot...) = vcat(ps...)
 
-function Base.hvcat(rows::Tuple{Vararg{Int}}, ps::Plot...)
-    nr = length(rows)
-    nc = rows[1]
-
-    for (i, c) in enumerate(rows[2:end])
-        c == nc || error("Saw $c columns in row $(i+1), expected $nc")
-    end
-    _cat(nr, nc, ps...)
-end
+Base.hvcat(rows::Tuple{Vararg{Int}}, ps::Plot...) = _cat(rows, ps...)
