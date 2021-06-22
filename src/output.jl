@@ -38,7 +38,7 @@ function savehtml(io::IO, p::Plot)
     print(io, """
     <html>
     <head>
-    <script src="https://cdn.plot.ly/plotly-1.54.7.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-1.58.4.min.js"></script>
     </head>
     <body>
       $(html_body(p))
@@ -78,4 +78,32 @@ function Base.show(io::IO, ::MIME"text/plain", p::Plot)
     """)
 end
 
+# integration with vscode and Juno
+function Base.show(io::IO, ::MIME"application/prs.juno.plotpane+html", p::Plot)
+    savehtml(io, p)
+end
+
 Base.show(io::IO, p::Plot) = show(io, MIME("text/plain"), p)
+
+import REPL
+
+"""
+opens a browser tab with the given html file
+"""
+function launch_browser(tmppath::String)
+    if Sys.isapple()
+        run(`open $tmppath`)
+    elseif Sys.iswindows()
+    run(`cmd /c start $tmppath`)
+  elseif Sys.islinux()
+    run(`xdg-open $tmppath`)
+    end
+end
+
+function Base.display(::REPL.REPLDisplay, p::Plot)
+    tmppath = string(tempname(), ".plotlyjs-jl.html")
+    open(tmppath, "w") do io
+        savehtml(io, p)
+    end
+    launch_browser(tmppath) # Open the browser
+end
