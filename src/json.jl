@@ -6,7 +6,7 @@ JSON.lower(a::HasFields) = a.fields
 function _apply_style_axis!(p::Plot, ax, force::Bool=false)
     if haskey(p.style.layout.fields, Symbol(ax, "axis")) || force
         ax_names = Iterators.filter(
-            _x-> startswith(string(_x), "$(ax)axis"),
+            _x -> startswith(string(_x), "$(ax)axis"),
             keys(p.layout.fields)
         )
 
@@ -48,7 +48,7 @@ function _maybe_set_attr!(p::Plot, k::Symbol, v::Cycler)
     ix = 0
     for t in p.data
         if t[k] == Dict()  # was empty
-            t[k] = v[ix+=1]
+            t[k] = v[ix += 1]
         end
     end
 end
@@ -88,16 +88,16 @@ function JSON.lower(p::Plot)
             end
         end
     end
-    Dict(:data => p.data, :layout => p.layout, :frames=>p.frames)
+    Dict(:data => p.data, :layout => p.layout, :frames => p.frames, :config => JSON.lower(p.config))
 end
 
 # Let string interpolation stringify to JSON format
 Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot}) = print(io, JSON.json(a))
-Base.print(io::IO, a::Vector{T}) where {T<:GenericTrace} = print(io, JSON.json(a))
+Base.print(io::IO, a::Vector{T}) where {T <: GenericTrace} = print(io, JSON.json(a))
 
 GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(pop!(d, :type, "scatter"), d)
-GenericTrace(d::AbstractDict{T}) where {T<:AbstractString} = GenericTrace(_symbol_dict(d))
-Layout(d::AbstractDict{T}) where {T<:AbstractString} = Layout(_symbol_dict(d))
+GenericTrace(d::AbstractDict{T}) where {T <: AbstractString} = GenericTrace(_symbol_dict(d))
+Layout(d::AbstractDict{T}) where {T <: AbstractString} = Layout(_symbol_dict(d))
 
 function JSON.parse(::Type{Plot}, str::AbstractString)
     d = JSON.parse(str)

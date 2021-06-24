@@ -1,5 +1,8 @@
 module PlotlyBase
 
+using Base.Iterators: lowercase
+using Dates: default
+using Base.Iterators: fieldname
 using Base.Iterators
 using JSON
 using DocStringExtensions
@@ -27,6 +30,7 @@ _symbol_dict(d::AbstractDict) =
     Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
 
 # include these here because they are used below
+include("plot_config.jl")
 include("traces_layouts.jl")
 include("styles.jl")
 
@@ -36,6 +40,7 @@ mutable struct Plot{TT<:AbstractVector{<:AbstractTrace},TL<:AbstractLayout,TF<:A
     layout::TL
     frames::TF
     divid::UUID
+    config::PlotConfig
     style::Style
 end
 
@@ -53,18 +58,18 @@ include("output.jl")
 include("kaleido.jl")
 
 # Set some defaults for constructing `Plot`s
-function Plot(;style::Style=CURRENT_STYLE[])
-    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), style)
+function Plot(;style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
+    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config, style)
 end
 
 function Plot(data::AbstractVector{<:AbstractTrace}, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
-              style::Style=CURRENT_STYLE[])
-    Plot(data, layout, frames, uuid4(), style)
+              style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
+    Plot(data, layout, frames, uuid4(), config, style)
 end
 
 function Plot(data::AbstractTrace, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
-              style::Style=CURRENT_STYLE[])
-    Plot([data], layout, frames; style=style)
+              style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
+    Plot([data], layout, frames; config=config, style=style)
 end
 
 
@@ -74,6 +79,7 @@ export
 
     # core types
     Plot, GenericTrace, PlotlyFrame, Layout, Shape, AbstractTrace, AbstractLayout,
+    PlotConfig,
 
     # plotly.js api methods
     restyle!, relayout!, update!, addtraces!, deletetraces!, movetraces!,
@@ -97,7 +103,7 @@ export
     use_style!, style, Style, Cycler, STYLES,
 
     # other
-    savejson, savefig, savehtml, html_body
+    savejson, savefig
 
 function __init__()
     env_style = Symbol(get(ENV, "PLOTLYJS_STYLE", ""))
@@ -107,10 +113,16 @@ function __init__()
     end
     _start_kaleido_process()
     @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
+
         function IJulia.display_dict(p::Plot)
             Dict(
                 "application/vnd.plotly.v1+json" => JSON.lower(p),
-                "text/plain" => sprint(show, "text/plain", p)
+                "text/plain" => sprint(show, "text/plain", p),
+                "text/html" => let
+                    buf = IOBuffer()
+                    show(buf, MIME("text/html"), p, include_plotlyjs="require")
+                    String(resize!(buf.data, buf.size))
+                end
             )
         end
     end

@@ -15,39 +15,62 @@ trace.
 columns (say `N`). Then `N` traces are constructed, where the `i`th column of
 `x` is paired with the `i`th column of `y`.
 """
-function Plot(x::AbstractVector{T}, y::AbstractVector, l::Layout=Layout();
-              kind="scatter", style::Style=CURRENT_STYLE[], kwargs...) where T<:_Scalar
-    Plot(GenericTrace(x, y; kind=kind, kwargs...), l, style=style)
+function Plot(
+        x::AbstractVector{T}, y::AbstractVector, l::Layout=Layout();
+        kind="scatter",
+        style::Style=CURRENT_STYLE[],
+        config::PlotConfig=PlotConfig(),
+        kwargs...
+    ) where T<:_Scalar
+    Plot(GenericTrace(x, y; kind=kind, kwargs...), l, style=style, config=config)
 end
 
-function Plot(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...) where T<:_Scalar
-    traces = GenericTrace[GenericTrace(x, getindex(y, :, i); kwargs...)
-                          for i in 1:size(y, 2)]
-    Plot(traces, l, style=style)
+function Plot(
+        x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
+        style::Style=CURRENT_STYLE[],
+        config::PlotConfig=PlotConfig(),
+        kwargs...
+    ) where T<:_Scalar
+    traces = GenericTrace[
+        GenericTrace(x, getindex(y, :, i); kwargs...)
+        for i in 1:size(y, 2)
+    ]
+    Plot(traces, l, style=style, config=config)
 end
 
-function Plot(x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...) where T<:AbstractVector
+function Plot(
+        x::AbstractVector{T}, y::AbstractMatrix, l::Layout=Layout();
+        style::Style=CURRENT_STYLE[],
+        config::PlotConfig=PlotConfig(),
+        kwargs...
+    ) where T<:AbstractVector
     size(x, 1) == size(y, 2) || error("x and y must have same number of cols")
 
-    traces = GenericTrace[GenericTrace(x[i], getindex(y, :, i); kwargs...)
-                          for i in 1:size(y,2)]
-    Plot(traces, l; style=style)
+    traces = GenericTrace[
+        GenericTrace(x[i], getindex(y, :, i); kwargs...)
+        for i in 1:size(y,2)
+    ]
+    Plot(traces, l; style=style, config=config)
 end
 
-function Plot(x::AbstractMatrix, y::AbstractMatrix, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...)
+function Plot(
+        x::AbstractMatrix, y::AbstractMatrix, l::Layout=Layout();
+        style::Style=CURRENT_STYLE[],
+        config::PlotConfig=PlotConfig(),
+        kwargs...
+    )
     if size(x, 2) == 1
         # use method above
-        Plot(getindex(x, :, 1), y, l; style=style, kwargs...)
+        Plot(getindex(x, :, 1), y, l; style=style, config=config, kwargs...)
     end
 
     size(x, 2) == size(y, 2) || error("x and y must have same number of cols")
 
-    traces = GenericTrace[GenericTrace(getindex(x, :, i), getindex(y, :, i); kwargs...)
-                          for i in 1:size(y,2)]
-    Plot(traces, l; style=style)
+    traces = GenericTrace[
+        GenericTrace(getindex(x, :, i), getindex(y, :, i); kwargs...)
+        for i in 1:size(y,2)
+    ]
+    Plot(traces, l; style=style, config=config)
 end
 
 # AbstractArray{T,N}
@@ -66,12 +89,15 @@ $(SIGNATURES)
 Construct a plot of `f` from `x0` to `x1`, using the layout `l`. All
 keyword arguments are applied to the constructed trace.
 """
-function Plot(f::Function, x0::Number, x1::Number, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[],
-              kwargs...)
+function Plot(
+        f::Function, x0::Number, x1::Number, l::Layout=Layout();
+        style::Style=CURRENT_STYLE[],
+        config::PlotConfig=PlotConfig(),
+        kwargs...
+    )
     x = range(x0, stop=x1, length=50)
     y = [f(_) for _ in x]
-    Plot(GenericTrace(x, y; name=Symbol(f), kwargs...), l, style=style)
+    Plot(GenericTrace(x, y; name=Symbol(f), kwargs...), l, style=style, config=config)
 end
 
 """
@@ -80,14 +106,18 @@ For each function in `f` in `fs`, construct a scatter trace that plots `f` from
 `x0` to `x1`, using the layout `l`. All keyword arguments are applied to all
 constructed traces.
 """
-function Plot(fs::AbstractVector{Function}, x0::Number, x1::Number,
-              l::Layout=Layout();
-              style::Style=CURRENT_STYLE[],
-              kwargs...)
+function Plot(
+        fs::AbstractVector{Function}, x0::Number, x1::Number, l::Layout=Layout();
+        style::Style=CURRENT_STYLE[],
+        config::PlotConfig=PlotConfig(),
+        kwargs...
+    )
     x = range(x0, stop=x1, length=50)
-    traces = GenericTrace[GenericTrace(x, map(f, x); name=Symbol(f), kwargs...)
-                          for f in fs]
-    Plot(traces, l; style=style)
+    traces = GenericTrace[
+        GenericTrace(x, map(f, x); name=Symbol(f), kwargs...)
+        for f in fs
+    ]
+    Plot(traces, l; style=style, config=config)
 end
 
 
