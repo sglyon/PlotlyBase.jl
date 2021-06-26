@@ -39,8 +39,8 @@ function _start_kaleido_process()
         kstdout = Pipe()
         kstderr = Pipe()
         kproc = run(pipeline(BIN,
-                             stdin = kstdin, stdout = kstdout, stderr = kstderr),
-                    wait = false)
+                             stdin=kstdin, stdout=kstdout, stderr=kstderr),
+                    wait=false)
         process_running(kproc) || error("There was a problem startink up kaleido.")
         close(kstdout.in)
         close(kstderr.in)
@@ -142,7 +142,10 @@ function savefig(io::IO,
         scale::Union{Nothing,Real}=nothing,
         format::String="png")
 
-    format == "html" && return savehtml(io, p)
+
+    if format == "html"
+        return show(io, MIME("text/html"), p, include_mathjax="cdn", include_plotlyjs="cdn", full_html=true)
+    end
 
     bytes = savefig(p, width=width, height=height, scale=scale, format=format)
     write(io, bytes)
@@ -202,6 +205,6 @@ for (mime, fmt) in _KALEIDO_MIMES
         height::Union{Nothing,Int}=nothing,
         scale::Union{Nothing,Real}=nothing,
     )
-        savefig(io, plt, format = $fmt)
+        savefig(io, plt, format=$fmt)
     end
 end
