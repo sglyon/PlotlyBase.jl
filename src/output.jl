@@ -64,8 +64,8 @@ function to_html(
     # get platform url
     base_url_line = ""
     if p.config.showLink === true || p.config.showEditInChartStudio === true
-        url = get(p.config, :plotlyServerURL, "https://plot.ly")
-        base_url_line = "window.PLOTLYENV.BASE_URL = '$url')"
+        url = ismissing(p.config.plotlyServerURL) ? "https://plot.ly" : p.config.plotlyServerURL
+        base_url_line = "window.PLOTLYENV.BASE_URL = '$url';\n"
     else
         pop!(jconfig, :plotlyServerURL, missing)
         pop!(jconfig, :linkText, missing)
@@ -75,21 +75,25 @@ function to_html(
     # build script body
     then_post_script = ""
     if !ismissing(post_script)
-        then_post_script = ".then(function () {$(replace(post_script, plot_id => p.divid))"
+        then_post_script = ".then(function() {$(replace(post_script, plot_id => p.divid))})"
     end
 
     then_addframes = ""
     then_animate = ""
     if !isempty(jframes)
-        then_addframes = ".then(function() { PLotly.addFrames('$(p.divid)', $(JSON.json(jframes))" \
-
+        then_addframes = """.then(function() {
+            Plotly.addFrames('$(p.divid)', $(JSON.json(jframes)));
+        })"""
+        
         if autoplay
             animation_opts_arg = ""
-            if animation_opts
+            if !ismissing(animation_opts)
                 animation_opts_arg = ", $(JSON.json(animation_opts))"
             end
 
-            then_animate = "then.function(){ Plotly.animate('$(p.divid)', null$(animation_opts_arg)"
+            then_animate = """.then(function() { 
+                Plotly.animate('$(p.divid)', null$(animation_opts_arg));
+            })"""
         end
     end  # jframes
 
