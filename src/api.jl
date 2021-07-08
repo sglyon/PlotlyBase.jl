@@ -460,3 +460,20 @@ for f in [:restyle, :relayout, :update, :addtraces, :deletetraces,
         out
     end
 end
+
+function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, secondary_y::Bool=false)
+    if ismissing(p.layout.subplots)
+        error("must create layout using `Subplots` to use `add_trace!`")
+    end
+
+    refs = p.layout.subplots.grid_ref[row, col]
+    if secondary_y && length(refs) == 1
+        msg = "To use secondary_y, you must have created the Subplot with seconary_y=true"
+        error(msg)
+    end
+
+    ref = refs[secondary_y ? 2 : 1]
+    merge!(trace, ref.trace_kwargs)
+    push!(p.data, trace)
+    p
+end
