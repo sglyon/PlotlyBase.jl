@@ -11,6 +11,10 @@ function _group_name(df::DataFrames.AbstractDataFrame, groups::Vector{Symbol})
     string("(", join([df[1, g] for g in groups], ", "), ")")
 end
 
+function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symbol)
+    hasproperty(container, val) ? container[!, val] : val
+end
+
 """
 $(SIGNATURES)
 Build a trace of kind `kind`, using the columns of `df` where possible. In
@@ -36,10 +40,9 @@ to each SubDataFrame. In the example above, the name attribute would set a
 different mean for each group.
 """
 function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="scatter", kwargs...)
-    d = Dict{Symbol,Any}(kwargs)
     if _has_group(df, group)
         _traces = []
-        for dfg in DataFrames.groupby(df, group)
+        for dfg in collect(DataFrames.groupby(df, group))
             push!(_traces,  GenericTrace(dfg; kind=kind, name=_group_name(dfg, group), kwargs...))
         end
         return GenericTrace[t for t in _traces]
@@ -49,14 +52,12 @@ function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="sca
         end
     end
 
-    for (k, v) in d
-        if isa(v, Symbol) && hasproperty(df, v)
-            d[k] = df[!, v]
-        elseif isa(v, Function)
-            d[k] = v(df)
-        end
+    attrs = attr()
+    for (key, value) in kwargs
+        # use `df` as `container` in setindex! for each property
+        attrs[df, key] = value
     end
-    GenericTrace(kind; d...)
+    GenericTrace(kind; attrs...)
 end
 
 
@@ -91,6 +92,15 @@ applied to all traces
 """
 function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
               style::Style=CURRENT_STYLE[], kwargs...)
+    kw_keys = keys(kwargs)
+    # set axis titles
+    for ax in [:x, :y, :z]
+        ax in kw_keys && setifempty!(l, Symbol(ax, "axis_title"), kwargs[ax])
+    end
+
+    # set legend title
+    :group in kw_keys && setifempty!(l, :legend_title_text, kwargs[:group])
+
     Plot(GenericTrace(df; kwargs...), l, style=style)
 end
 

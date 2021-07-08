@@ -1,7 +1,7 @@
 abstract type AbstractTrace end
 abstract type AbstractLayout end
 
-mutable struct GenericTrace{T<:AbstractDict{Symbol,Any}} <: AbstractTrace
+mutable struct GenericTrace{T <: AbstractDict{Symbol,Any}} <: AbstractTrace
     fields::T
 end
 
@@ -10,25 +10,25 @@ function GenericTrace(kind::Union{AbstractString,Symbol},
     # use setindex! methods below to handle `_` substitution
     fields[:type] = kind
     gt = GenericTrace(fields)
-    foreach(x->setindex!(gt, x[2], x[1]), kwargs)
+    foreach(x -> setindex!(gt, x[2], x[1]), kwargs)
     gt
 end
 
 function _layout_defaults()
-    Dict{Symbol,Any}(:margin => Dict(:l=>50, :r=>50, :t=>60, :b=>50))
+    Dict{Symbol,Any}(:margin => Dict(:l => 50, :r => 50, :t => 60, :b => 50))
 end
 
-mutable struct Layout{T<:AbstractDict{Symbol,Any}} <: AbstractLayout
+mutable struct Layout{T <: AbstractDict{Symbol,Any}} <: AbstractLayout
     fields::T
 
     function Layout{T}(fields::T; kwargs...) where T
         l = new{T}(merge(_layout_defaults(), fields))
-        foreach(x->setindex!(l, x[2], x[1]), kwargs)
+        foreach(x -> setindex!(l, x[2], x[1]), kwargs)
         l
     end
 end
 
-Layout(fields::T=Dict{Symbol,Any}(); kwargs...) where {T<:AbstractDict{Symbol,Any}} =
+Layout(fields::T=Dict{Symbol,Any}(); kwargs...) where {T <: AbstractDict{Symbol,Any}} =
     Layout{T}(fields; kwargs...)
 
 kind(gt::GenericTrace) = get(gt, :type, "scatter")
@@ -39,7 +39,7 @@ kind(l::Layout) = "layout"
 # -------------------------------------------- #
 abstract type AbstractPlotlyAttribute end
 
-mutable struct PlotlyAttribute{T<:AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
+mutable struct PlotlyAttribute{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
     fields::T
 end
 
@@ -52,7 +52,7 @@ function attr(fields=Dict{Symbol,Any}(); kwargs...)
     s
 end
 
-mutable struct PlotlyFrame{T<:AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
+mutable struct PlotlyFrame{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
     fields::T
     function PlotlyFrame{T}(fields::T) where T
         !(Symbol("name") in keys(fields)) && @warn("Frame should have a :name field for expected behavior")
@@ -87,7 +87,7 @@ function Shape(kind::AbstractString, fields=Dict{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
     fields[:type] = kind
     s = Shape(fields)
-    foreach(x->setindex!(s, x[2], x[1]), kwargs)
+    foreach(x -> setindex!(s, x[2], x[1]), kwargs)
     s
 end
 
@@ -189,9 +189,7 @@ _UNDERSCORE_ATTRS = collect(
         x-> contains(string(x), "_") && !startswith(string(x), "_"),
         nms
     )
-)
-
-=#
+) =#
 const _UNDERSCORE_ATTRS = [:error_x, :copy_ystyle, :error_z, :plot_bgcolor,
                            :paper_bgcolor, :copy_zstyle, :error_y, :hr_name]
 
@@ -210,9 +208,15 @@ function Base.merge!(hf1::HasFields, hf2::HasFields)
     hf1
 end
 
+function setifempty!(hf::HasFields, key::Symbol, value)
+    if isempty(hf[key])
+        hf[key] = value
+    end
+end
+
 Base.haskey(hf::HasFields, k::Symbol) = haskey(hf.fields, k)
 
-Base.merge(hf1::T, hf2::T) where {T<:HasFields} =
+Base.merge(hf1::T, hf2::T) where {T <: HasFields} =
     merge!(deepcopy(hf1), hf2)
 
 Base.isempty(hf::HasFields) = isempty(hf.fields)
@@ -225,57 +229,68 @@ end
 Base.iterate(hf::HasFields) = iterate(hf.fields)
 Base.iterate(hf::HasFields, x) = iterate(hf.fields, x)
 
-==(hf1::T, hf2::T) where {T<:HasFields} = hf1.fields == hf2.fields
+==(hf1::T, hf2::T) where {T <: HasFields} = hf1.fields == hf2.fields
+
+_obtain_setindex_val(container::Any, val::Any) = val
+_obtain_setindex_val(container::Dict, val::Any) = haskey(container, val) ? container[val] : val
+_obtain_setindex_val(container::Any, func::Function) = func(container)
+
+# no container
+Base.setindex!(gt::HasFields, val, key::String...) = setindex!(gt, val, missing, key...)
 
 # methods that allow you to do `obj["first.second.third"] = val`
-function Base.setindex!(gt::HasFields, val, key::String)
+function Base.setindex!(gt::HasFields, val, container, key::String)
     if in(Symbol(key), _UNDERSCORE_ATTRS)
-        return gt.fields[Symbol(key)] = val
+        return gt.fields[Symbol(key)] = _obtain_setindex_val(container, val)
     else
-        return setindex!(gt, val, map(Symbol, split(key, ['.', '_']))...)
+        return setindex!(gt, val, container, map(Symbol, split(key, ['.', '_']))...)
     end
 end
 
-Base.setindex!(gt::HasFields, val, keys::String...) =
-    setindex!(gt, val, map(Symbol, keys)...)
+Base.setindex!(gt::HasFields, val, container, keys::String...) =
+    setindex!(gt, val, container, map(Symbol, keys)...)
 
 # Now for deep setindex. The deepest the json schema ever goes is 4 levels deep
 # so we will simply write out the setindex calls for 4 levels by hand. If the
 # schema gets deeper in the future we can @generate them with @nexpr
-function Base.setindex!(gt::HasFields, val, key::Symbol)
-    # check if single key has underscores, if so split at str and call above
+
+# no container
+Base.setindex!(gt::HasFields, val, key::Symbol...) = setindex!(gt, val, missing, key...)
+
+function Base.setindex!(gt::HasFields, val, container, key::Symbol)
+    # check if single key has underscores, if so split as str and call above
     # unless it is one of the special attribute names with an underscore
     if occursin("_", string(key))
 
         if !in(key, _UNDERSCORE_ATTRS)
-            return setindex!(gt, val, string(key))
+            return setindex!(gt, val, container, string(key))
         end
     end
-    gt.fields[key] = val
+    gt.fields[key] = _obtain_setindex_val(container, val)
 end
 
-function Base.setindex!(gt::HasFields, val, k1::Symbol, k2::Symbol)
+function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol)
     d1 = get(gt.fields, k1, Dict())
-    d1[k2] = val
+    d1[k2] = _obtain_setindex_val(container, val)
     gt.fields[k1] = d1
     val
 end
 
-function Base.setindex!(gt::HasFields, val, k1::Symbol, k2::Symbol, k3::Symbol)
+function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol, k3::Symbol)
     d1 = get(gt.fields, k1, Dict())
     d2 = get(d1, k2, Dict())
-    d2[k3] = val
+    d2[k3] = _obtain_setindex_val(container, val)
     d1[k2] = d2
     gt.fields[k1] = d1
     val
 end
 
-function Base.setindex!(gt::HasFields, val, k1::Symbol, k2::Symbol,
+function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
                         k3::Symbol, k4::Symbol)
     d1 = get(gt.fields, k1, Dict())
     d2 = get(d1, k2, Dict())
     d3 = get(d2, k3, Dict())
-    d3[k4] = val
+    d3[k4] = _obtain_setindex_val(container, val)
     d2[k3] = d3
     d1[k2] = d2
     gt.fields[k1] = d1
@@ -288,10 +303,11 @@ end
 Example:
 
 hf = Layout(font_size=10)
-val = Layout(font_family="Helvetica")
+val = Layout(font_family="Helvetica") =#
 
-=#
-function Base.setindex!(gt::HasFields, val::_LikeAssociative, key::Symbol)
+Base.setindex!(gt::HasFields, val::_LikeAssociative, key::Symbol...) = setindex!(gt, val, missing, key...)
+
+function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, key::Symbol)
     if occursin("_", string(key))
 
         if !in(key, _UNDERSCORE_ATTRS)
@@ -300,21 +316,21 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, key::Symbol)
     end
 
     for (k, v) in val
-        setindex!(gt, v, key, k)
+        setindex!(gt, v, container, key, k)
     end
 end
 
-function Base.setindex!(gt::HasFields, val::_LikeAssociative, k1::Symbol,
+function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, k1::Symbol,
                         k2::Symbol)
     for (k, v) in val
-        setindex!(gt, v, k1, k2, k)
+        setindex!(gt, v, container, k1, k2, k)
     end
 end
 
-function Base.setindex!(gt::HasFields, val::_LikeAssociative, k1::Symbol,
+function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, k1::Symbol,
                         k2::Symbol, k3::Symbol)
     for (k, v) in val
-        setindex!(gt, v, k1, k2, k3, k)
+        setindex!(gt, v, container, k1, k2, k3, k)
     end
 end
 

@@ -5,12 +5,13 @@ function myplot(fn)
 end
 
 @testset "kaleido" begin
-    for ext in PlotlyBase.ALL_FORMATS
+    for ext in [PlotlyBase.ALL_FORMATS..., "html"]
         if ext === "eps"
             continue
         end
         @show fn = tempname() * "." * ext
         myplot(fn) == fn
         @test isfile(fn)
+        rm(fn)
     end
 end
