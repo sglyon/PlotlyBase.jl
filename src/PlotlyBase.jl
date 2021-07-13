@@ -29,8 +29,18 @@ _symbol_dict(x) = x
 _symbol_dict(d::AbstractDict) =
     Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
 
+const _Maybe{T} = Union{Missing,T}
+
+abstract type AbstractPlotlyAttribute end
+
+mutable struct PlotlyAttribute{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
+    fields::T
+end
+
+
 # include these here because they are used below
 include("plot_config.jl")
+include("subplot_utils.jl")
 include("traces_layouts.jl")
 include("styles.jl")
 
@@ -72,6 +82,12 @@ function Plot(data::AbstractTrace, layout=Layout(), frames::AbstractVector{<:Plo
     Plot([data], layout, frames; config=config, style=style)
 end
 
+# empty plot
+function Plot(layout::Layout, frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
+    style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
+    Plot(GenericTrace[], layout, frames; config=config, style=style)
+end
+
 
 # NOTE: we export trace constructing types from inside api.jl
 # NOTE: we export names of shapes from traces_layouts.jl
@@ -79,7 +95,7 @@ export
 
     # core types
     Plot, GenericTrace, PlotlyFrame, Layout, Shape, AbstractTrace, AbstractLayout,
-    PlotConfig,
+    PlotConfig, Spec, Subplots, Inset,
 
     # plotly.js api methods
     restyle!, relayout!, update!, addtraces!, deletetraces!, movetraces!,
@@ -91,7 +107,7 @@ export
     extendtraces, prependtraces, react,
 
     # helper methods
-    plot, fork, vline, hline, attr, frame,
+    plot, fork, vline, hline, attr, frame, add_trace!,
 
     # new trace types
     stem,

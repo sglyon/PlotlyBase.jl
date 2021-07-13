@@ -69,7 +69,9 @@ function JSON.lower(p::Plot)
         pop!(la.fields, :xaxis, nothing)
         pop!(la.fields, :yaxis, nothing)
         pop!(la.fields, :zaxis, nothing)
+        _subplots = p.layout.subplots
         p.layout = merge(la, p.layout)
+        p.layout.subplots = _subplots
     end
 
     # apply global trace attrs

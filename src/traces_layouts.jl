@@ -20,9 +20,10 @@ end
 
 mutable struct Layout{T <: AbstractDict{Symbol,Any}} <: AbstractLayout
     fields::T
+    subplots::_Maybe{Subplots}
 
     function Layout{T}(fields::T; kwargs...) where T
-        l = new{T}(merge(_layout_defaults(), fields))
+        l = new{T}(merge(_layout_defaults(), fields), missing)
         foreach(x -> setindex!(l, x[2], x[1]), kwargs)
         l
     end
@@ -37,11 +38,6 @@ kind(l::Layout) = "layout"
 # -------------------------------------------- #
 # Specific types of trace or layout attributes #
 # -------------------------------------------- #
-abstract type AbstractPlotlyAttribute end
-
-mutable struct PlotlyAttribute{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
-    fields::T
-end
 
 function attr(fields=Dict{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
