@@ -302,13 +302,13 @@ function _build_subplot_title_annotations(
     # If shared_axes is false (default) use list_of_domains
     # This is used for insets and irregular layouts
     # if not shared_xaxes and not shared_yaxes:
-        x_dom = [dom.x for dom in list_of_domains]
-            y_dom = [dom.y for dom in list_of_domains]
+    x_dom = [dom.x for dom in list_of_domains]
+    y_dom = [dom.y for dom in list_of_domains]
     subtitle_pos_x = []
     subtitle_pos_y = []
 
 
-            if title_edge == "top"
+    if title_edge == "top"
         text_angle = 0
         xanchor = "center"
         yanchor = "bottom"
@@ -356,7 +356,7 @@ function _build_subplot_title_annotations(
             push!(subtitle_pos_x, x_domains[1])
         end
         for y_domains in y_dom
-    push!(subtitle_pos_y, sum(y_domains) / 2.0)
+            push!(subtitle_pos_y, sum(y_domains) / 2.0)
         end
         yshift = 0
         xshift = -offset
@@ -399,17 +399,16 @@ function Layout(sp::Subplots; kw...)
     row_seq = collect(1:rows) .- 1
     row_dir < 0 && reverse!(row_seq)
 
-        grid = [
+    grid = [
         (
             sum(_widths[1:c]) + c * horizontal_spacing,
-    sum(_heights[1:r]) + r * vertical_spacing
-    )
+            sum(_heights[1:r]) + r * vertical_spacing
+        )
         for r in row_seq, c in col_seq
     ]
-        domains_grid = Any[missing for _ in 1:rows, __ in 1:cols]
+    domains_grid = _Maybe{NamedTuple{(:x, :y)}}[missing for _ in 1:rows, __ in 1:cols]
     list_of_domains = NamedTuple{(:x, :y)}[]
     max_subplot_ids = _get_initial_max_subplot_ids()
-
 
     for r in 1:rows, c in 1:cols
         spec = specs[r, c]
@@ -423,17 +422,17 @@ function Layout(sp::Subplots; kw...)
         r_spanned > rows && error("Some rowspan value is too large for this subplot grid")
 
         # grid x c_spanned -> x_domain
-                x_s = grid[r, c][1]
+        x_s = grid[r, c][1]
         x_e = grid[r, c_spanned][1] + _widths[c_spanned] - spec.r
         x_domain = (max(0.0, x_s), min(1.0, x_e))
 
         # grid x r_spanned x row_dir -> yaxis_domain
         y_domain = let
             if row_dir > 1
-            (grid[r, c][2] + spec.b, grid[r_spanned, c][2] + _heights[r_spanned] - spec.t)
-        else
+                (grid[r, c][2] + spec.b, grid[r_spanned, c][2] + _heights[r_spanned] - spec.t)
+            else
                 (grid[r_spanned, c][2], grid[r, c][2] + _heights[end - r + 1] - spec.t)
-    end
+            end
         end
         domain = (x = x_domain, y = y_domain)
         domains_grid[r, c] = domain
@@ -445,37 +444,37 @@ function Layout(sp::Subplots; kw...)
     end
 
     _configure_shared_axes!(layout, grid_ref, specs, "x", shared_xaxes, row_dir)
-            _configure_shared_axes!(layout, grid_ref, specs, "y", shared_yaxes, row_dir)
+    _configure_shared_axes!(layout, grid_ref, specs, "y", shared_yaxes, row_dir)
 
     # handle insets
 
-        insets_ref = ismissing(insets) ? missing : Any[missing for _ in 1:length(insets)]
+    insets_ref = ismissing(insets) ? missing : Any[missing for _ in 1:length(insets)]
     if !ismissing(insets)
         for (i_inset, inset) in enumerate(insets)
-        r = inset.cell[1] - 1
-        c = inset.cell[2] - 1
-        end
+            r = inset.cell[1]
+            c = inset.cell[2]
 
-        0 <= r <= rows && error("Some `cell` out of range")
-        0 <= c <= cols && error("Some `cell` out of range")
+            0 <= r <= rows || error("Some `cell` out of range")
+            0 <= c <= cols || error("Some `cell` out of range")
 
-        x_s = grid[r, c][1] + inset.l * _widths[c]
-        x_e = inset.w == "to_end" ? grid[r, c][1] + _widths[c] : (x_s + inset.w * _widths[c])
-        x_domain = (x_s, x_e)
+            x_s = grid[r, c][1] + inset.l * _widths[c]
+            x_e = inset.w == "to_end" ? grid[r, c][1] + _widths[c] : (x_s + inset.w * _widths[c])
+            x_domain = (x_s, x_e)
 
-        y_s = grid[r, c][2] + inset.b + _heights[end - r + 1]
-        y_e = inset.h == "to_end" ? (grid[r, c][2] + _heights[end - r + 1]) : (y_s + inset.h * _heights[end - r + 1])
-        y_domain = (y_s, y_e)
-        domain = (x = x_domain, y = y_domain)
+            y_s = grid[r, c][2] + inset.b * _heights[end - r + 1]
+            y_e = inset.h == "to_end" ? (grid[r, c][2] + _heights[end - r + 1]) : (y_s + inset.h * _heights[end - r + 1])
+            y_domain = (y_s, y_e)
+            domain = (x = x_domain, y = y_domain)
 
             push!(list_of_domains, domain)
 
-        insets_ref[i_inset] = _init_subplot!(
-            layout, inset.kind, false, domain, max_subplot_ids
-        )
+            insets_ref[i_inset] = _init_subplot!(
+                layout, inset.kind, false, domain, max_subplot_ids
+            )
+        end
     end
 
-        plot_title_annotations = _build_subplot_title_annotations(
+    plot_title_annotations = _build_subplot_title_annotations(
         subplot_titles, list_of_domains
     )
     layout[:annotations] = plot_title_annotations
@@ -483,9 +482,9 @@ function Layout(sp::Subplots; kw...)
     if !ismissing(column_titles)
         domains_list = let
             if row_dir > 0
-                [domains_grid[end][c] for c in 1:cols]
+                [domains_grid[end, c] for c in 1:cols]
             else
-                [domains_grid[1][c] for c in 1:cols]
+                [domains_grid[1, c] for c in 1:cols]
             end
         end
         append!(
@@ -495,10 +494,10 @@ function Layout(sp::Subplots; kw...)
     end
 
     if !ismissing(row_titles)
-        domains_list = [domains_grid[r][end] for r in 1:rows]
+        domains_list = [domains_grid[r, end] for r in 1:rows]
         append!(
             layout[:annotations],
-            _build_subplot_title_annotations(row_titles, domains_list)
+            _build_subplot_title_annotations(row_titles, domains_list, title_edge="right")
         )
     end
 

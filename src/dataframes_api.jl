@@ -101,6 +101,63 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
     # set legend title
     :group in kw_keys && setifempty!(l, :legend_title_text, kwargs[:group])
 
+    rows = []
+    cols = []
+    if :facet_row in kw_keys
+        if !_has_group(df, Symbol(kwargs[:facet_row]))
+            error("DataFrame is missing $(kwargs[:facet_row]), cannot set as facet_row")
+        else
+            rows = unique(df[:, Symbol(kwargs[:facet_row])])
+        end
+    end
+
+    if :facet_col in kw_keys
+        if !_has_group(df, Symbol(kwargs[:facet_col]))
+            error("DataFrame is missing $(kwargs[:facet_col]), cannot set as facet_col")
+        else
+            cols = unique(df[:, Symbol(kwargs[:facet_col])])
+        end
+    end
+
+    Nrows = max(1, length(rows))
+    Ncols = max(1, length(cols))
+
+    if Nrows > 1 || Ncols > 1
+        subplot_kw = Dict{Symbol,Any}()
+        groupby_cols = Symbol[]
+        if Ncols > 1
+            subplot_kw[:cols] = Ncols
+            subplot_kw[:column_titles] = cols
+            subplot_kw[:shared_yaxes] = true
+            push!(groupby_cols, Symbol(kwargs[:facet_col]))
+        end
+
+        if Nrows > 1
+            subplot_kw[:rows] = Nrows
+            subplot_kw[:row_titles] = rows
+            subplot_kw[:shared_xaxes] = true
+            push!(groupby_cols, Symbol(kwargs[:facet_row]))
+        end
+
+        subplots = Subplots(; subplot_kw...)
+        subplot_layout = Layout(subplots; l.fields...)
+        out = Plot(subplot_layout)
+
+        for dfg in collect(DataFrames.groupby(df, groupby_cols))
+            row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_row]]), rows)
+            col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_col]]), cols)
+            traces = GenericTrace(dfg; kwargs...)
+
+            traces_vec = traces isa GenericTrace ? [traces] : traces
+            for trace in traces_vec
+                add_trace!(out, trace, row=row_ix, col=col_ix)
+            end
+        end
+
+        return out
+    end
+
+
     Plot(GenericTrace(df; kwargs...), l, style=style)
 end
 

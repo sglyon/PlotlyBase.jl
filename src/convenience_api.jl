@@ -1,6 +1,6 @@
 function GenericTrace(x::AbstractArray, y::AbstractArray;
                       kind="scatter", kwargs...)
-    GenericTrace(kind; x=x, y=y, kwargs... )
+    GenericTrace(kind; x=x, y=y, kwargs...)
 end
 
 """
@@ -21,7 +21,7 @@ function Plot(
         style::Style=CURRENT_STYLE[],
         config::PlotConfig=PlotConfig(),
         kwargs...
-    ) where T<:_Scalar
+    ) where T <: _Scalar
     Plot(GenericTrace(x, y; kind=kind, kwargs...), l, style=style, config=config)
 end
 
@@ -30,7 +30,7 @@ function Plot(
         style::Style=CURRENT_STYLE[],
         config::PlotConfig=PlotConfig(),
         kwargs...
-    ) where T<:_Scalar
+    ) where T <: _Scalar
     traces = GenericTrace[
         GenericTrace(x, getindex(y, :, i); kwargs...)
         for i in 1:size(y, 2)
@@ -43,12 +43,12 @@ function Plot(
         style::Style=CURRENT_STYLE[],
         config::PlotConfig=PlotConfig(),
         kwargs...
-    ) where T<:AbstractVector
+    ) where T <: AbstractVector
     size(x, 1) == size(y, 2) || error("x and y must have same number of cols")
 
     traces = GenericTrace[
         GenericTrace(x[i], getindex(y, :, i); kwargs...)
-        for i in 1:size(y,2)
+        for i in 1:size(y, 2)
     ]
     Plot(traces, l; style=style, config=config)
 end
@@ -68,7 +68,7 @@ function Plot(
 
     traces = GenericTrace[
         GenericTrace(getindex(x, :, i), getindex(y, :, i); kwargs...)
-        for i in 1:size(y,2)
+        for i in 1:size(y, 2)
     ]
     Plot(traces, l; style=style, config=config)
 end
@@ -79,7 +79,7 @@ $(SIGNATURES)
 Build a scatter plot and set  `y` to y. All keyword arguments are passed directly
 as keyword arguments to the constructed scatter.
 """
-function Plot(y::AbstractArray{T}, l::Layout=Layout(); kwargs...) where T<:_Scalar
+function Plot(y::AbstractArray{T}, l::Layout=Layout(); kwargs...) where T <: _Scalar
     # call methods above to get many traces if y is >1d
     Plot(1:size(y, 1), y, l; kwargs...)
 end
