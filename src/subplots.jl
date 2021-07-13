@@ -19,7 +19,7 @@ function gen_layout(rows::Tuple{Vararg{Int}}, subplot_titles::Bool=false)
     
     x = 0.0  # start from left
     y = 1.0  # start from top
-    
+
     out = Layout()
 
     subplot = 1
