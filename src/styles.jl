@@ -1,12 +1,10 @@
-#=
+#= 
 Note that the following styles used values from the matplotlib style library
 (https://github.com/matplotlib/matplotlib/tree/master/lib/matplotlib/mpl-data/stylelib):
 
 - ggplot
 - fivethirtyeight
-- seaborn
-
-=#
+- seaborn =#
 
 struct Cycler
     vals::Vector
@@ -27,7 +25,7 @@ function Base.getindex(c::Cycler, ixs::AbstractVector{<:Integer})
     [c[i] for i in ixs]
 end
 
-Base.iterate(c::Cycler, s::Int=1) = c[s], s+1
+Base.iterate(c::Cycler, s::Int=1) = c[s], s + 1
 Base.IteratorSize(::Cycler) = IsInfinite()
 
 struct Style
@@ -72,7 +70,7 @@ function Style(ps1::Style, ps2::Style)
     Style(layout=la, global_trace=gta, trace=ta)
 end
 
-Style(pss::Style...) = foldl(Style, pss[1], pss[2:end])
+Style(pss::Style...) = foldl(Style, pss)
 
 function Style(base::Style;
         color_cycle=[], layout=Layout(),
@@ -86,7 +84,7 @@ function Style(base::Style;
 end
 
 function Base.show(io::IO, ::MIME"text/plain", s::Style)
-    ctx = IOContext(io, :limit=>true)
+    ctx = IOContext(io, :limit => true)
     println(io, "Style with:")
 
     if !isempty(s.layout)
@@ -134,7 +132,7 @@ function ggplot_style()
 end
 
 function fivethirtyeight_style()
-    ta = Dict(:scatter=>attr(line_width=4))
+    ta = Dict(:scatter => attr(line_width=4))
     axis = attr(showgrid=true, gridcolor="#cbcbcb",
                 linewidth=1.0, linecolor="#f0f0f0",
                 ticklen=0.0, tickcolor="#555555", ticks="outside",
@@ -157,8 +155,8 @@ function fivethirtyeight_style()
 end
 
 function seaborn_style()
-    ta = Dict(:heatmap=>attr(colorscale="Greys"),
-              :scatter=>attr(marker=attr(size=7, line_width=0.0),
+    ta = Dict(:heatmap => attr(colorscale="Greys"),
+              :scatter => attr(marker=attr(size=7, line_width=0.0),
                              line_width=1.75))
     axis = attr(showgrid=true, gridcolor="white",
                 linewidth=1.0, linecolor="white",
