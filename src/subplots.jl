@@ -117,7 +117,6 @@ _cat(nr::Int, nc::Int, ps::Plot...) = _cat(Tuple(fill(nc, nr)), ps...)
 
 Base.hcat(ps::Plot...) = _cat(1, length(ps), ps...)
 Base.vcat(ps::Plot...) = _cat(length(ps), 1,  ps...)
-Base.vect(ps::Plot...) = vcat(ps...)
 
 Base.hvcat(rows::Tuple{Vararg{Int}}, ps::Plot...) = _cat(rows, ps...)
 
