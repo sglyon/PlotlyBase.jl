@@ -89,6 +89,31 @@ end
 
 """
 $(SIGNATURES)
+
+lexographically sort obsvals to match orders, given keys into orders
+"""
+function _partial_val_sortperm(
+        obsvals::Vector{<:Vector}, orders::Dict{Symbol}, order_keys::Vector{Symbol}
+    )
+    if length(obsvals[1]) !== length(order_keys)
+        error("obsvals[i] and order_keys must be same length")
+    end
+
+    to_sort = deepcopy(obsvals)
+    for trace_i in 1:length(obsvals)
+        for (group_i, colname) in enumerate(order_keys)
+            if haskey(orders, Symbol(colname))
+                want_order = orders[Symbol(colname)]
+                group_val = obsvals[trace_i][group_i]
+                to_sort[trace_i][group_i] = findfirst(isequal(group_val), want_order)
+            end
+        end
+    end
+    return sortperm(to_sort)
+end
+
+"""
+$(SIGNATURES)
 Construct a plot using the columns of `df` if possible. For each keyword
 argument, if the value of the argument is a Symbol and the `df` has a column
 whose name matches the value, replace the value with the column of the `df`.
@@ -101,7 +126,7 @@ applied to all traces
 function Plot(
         df::DataFrames.AbstractDataFrame,
         l::Layout=Layout();
-        category_order=missing,
+        category_orders::_Maybe{Union{PlotlyAttribute,<:Dict{Symbol}}}=missing,
         labels::_Maybe{Union{PlotlyAttribute,<: Dict}}=missing,
         facet_row::_Maybe{Symbol}=missing,
         facet_col::_Maybe{Symbol}=missing,
@@ -174,13 +199,33 @@ function Plot(
         end
     end
 
+    # Handle category orders
+    orders = Dict{Symbol,Any}()
+    if !ismissing(category_orders)
+        for (k, v) in pairs(category_orders)
+            if !_has_group(df, k)
+                @warn "Unknown category $k (dataframe has no column $k). Skipping"
+                continue
+            end
+            unique_vals = unique(df[!, k])
+            cat_order = deepcopy(v)
+            for v in unique_vals
+                if !(v in cat_order)
+                    push!(cat_order, v)
+                end
+            end
+            orders[k] = cat_order
+        end
+    end
+
+    # handle facets
     rows = []
     cols = []
     if !ismissing(facet_row)
         if !_has_group(df, facet_row)
             error("DataFrame is missing $(facet_row), cannot set as facet_row")
         else
-            rows = unique(df[:, facet_row])
+            rows = get(orders, facet_row, unique(df[:, facet_row]))
         end
     end
 
@@ -188,7 +233,7 @@ function Plot(
         if !_has_group(df, facet_col)
             error("DataFrame is missing $(facet_col), cannot set as facet_col")
         else
-            cols = unique(df[:, facet_col])
+            cols = get(orders, facet_col, unique(df[:, facet_col]))
         end
     end
 
@@ -218,13 +263,15 @@ function Plot(
 
     out = Plot(out_layout)
 
+    legend_order = Vector{<:Any}[]
     for dfg in collect(DataFrames.groupby(df, facet_cols))
         row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, facet_row]), rows)
         col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, facet_col]), cols)
 
         for sub_dfg in collect(DataFrames.groupby(dfg, groupby_cols))
             extra_kw = attr()
-            group_name = _group_name(sub_dfg, groupby_cols)
+            group_obs = Any[sub_dfg[1, g] for g in groupby_cols]
+            group_name = join(string.(group_obs), ",")
             if length(group_name) > 0
                 extra_kw.name = group_name
                 extra_kw.legendgroup = group_name
@@ -240,6 +287,7 @@ function Plot(
 
             traces_vec = traces isa GenericTrace ? [traces] : traces
             for trace in traces_vec
+                push!(legend_order, group_obs)
                 add_trace!(out, trace, row=row_ix, col=col_ix)
             end
         end
@@ -258,8 +306,11 @@ function Plot(
             end
         end
     end
-
     out.layout.legend_tracegroupgap = 0
+
+    # fix order of traces according to category_orders
+    trace_order = _partial_val_sortperm(legend_order, orders, groupby_cols)
+    out.data = out.data[trace_order]
 
     # add x axis title to bottom row of subplots and y axis title to left column
     for gr in out.layout.subplots.grid_ref[:, 1]
@@ -267,13 +318,26 @@ function Plot(
         if :y in keys(label_map)
             setifempty!(out.layout, Symbol("$(yname)_title_text"), label_map[:y])
         end
+
+        if haskey(orders, kwargs[:y])
+            # order the yticks
+            setifempty!(out.layout, Symbol("$(yname)_categoryorder"), "array")
+            setifempty!(out.layout, Symbol("$(yname)_categoryarray"), orders[kwargs[:y]])
+        end
     end
     for gr in out.layout.subplots.grid_ref[end, :]
         xname = gr[1].layout_keys[1]
         if :x in keys(label_map)
             setifempty!(out.layout, Symbol("$(xname)_title_text"), label_map[:x])
+
+            if haskey(orders, kwargs[:x])
+                # order the xticks
+                setifempty!(out.layout, Symbol("$(xname)_categoryorder"), "array")
+                setifempty!(out.layout, Symbol("$(xname)_categoryarray"), orders[kwargs[:x]])
+            end
         end
     end
+
 
     return out
 end
