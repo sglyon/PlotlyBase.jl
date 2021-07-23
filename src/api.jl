@@ -501,3 +501,76 @@ function _get_colorway(l::Layout)
     ]
     Cycler(get(l, :template_colorway, D3_colorway))
 end
+
+_get_seq_from_template_data(p::Plot, args...; kwargs...) = _get_seq_from_template_data(p.layout, args...; kwargs...)
+function _get_seq_from_template_data(
+        l::Layout,
+        default::Cycler,
+        property_sub_path::Symbol,
+        root_template_path::Symbol=:scatter
+    )
+    template_specs = getindex(l, Symbol("template_data_$(root_template_path)"))
+    if !isempty(template_specs)
+        seq = []
+        default_ix = 0
+        for spec in template_specs
+            want = get(spec, property_sub_path, Dict())
+            if ismissing(want)
+                push!(seq, default[default_ix += 1])
+            else
+                push!(seq, want)
+            end
+        end
+        return Cycler(seq)
+    end
+    return default
+end
+
+function _get_line_dash_seq(l::Union{Layout,Plot})
+    default_line_dash = Cycler([
+        "solid",
+        "dot",
+        "dash",
+        "longdash",
+        "dashdot",
+        "longdashdot",
+    ])
+    return _get_seq_from_template_data(l, default_line_dash, :line_dash, :scatter)
+end
+
+
+function _get_marker_symbol_seq(l::Union{Layout,Plot})
+    default = Cycler([
+        "circle"
+        "diamond"
+        "cross"
+        "triangle"
+        "square"
+        "x"
+        "pentagon"
+        "hexagon"
+        "hexagon2"
+        "octagon"
+        "star"
+        "hexagram"
+        "hourglass"
+        "bowtie"
+        "asterisk"
+        "hash"
+        "y"
+        "line"
+    ])
+    return _get_seq_from_template_data(l, default, :marker_symbol, :scatter)
+end
+
+function _get_default_seq(l::Layout, attribute::Symbol)
+    _getter_funcs = Dict(
+        :line_dash => _get_line_dash_seq,
+        :symbol => _get_marker_symbol_seq,
+        :color => _get_colorway
+    )
+    if attribute in keys(_getter_funcs)
+        return _getter_funcs[attribute](l)
+    end
+    error("Don't know how to get defaults for $(attribute)")
+end

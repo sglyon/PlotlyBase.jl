@@ -298,6 +298,20 @@ function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
     val
 end
 
+function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
+    k3::Symbol, k4::Symbol, k5::Symbol)
+    d1 = get(gt.fields, k1, Dict())
+    d2 = get(d1, k2, Dict())
+    d3 = get(d2, k3, Dict())
+    d4 = get(d3, k4, Dict())
+    d4[k5] = _obtain_setindex_val(container, val)
+    d3[k4] = d4
+    d2[k3] = d3
+    d1[k2] = d2
+    gt.fields[k1] = d1
+    val
+end
+
 #= NOTE: I need to special case instances when `val` is Associatve like so that
          I can partially update something that already exists.
 
@@ -382,6 +396,15 @@ function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
     d2 = get(d1, k2, Dict())
     d3 = get(d2, k3, Dict())
     get(d3, k4, Dict())
+end
+
+function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
+    k3::Symbol, k4::Symbol, k5::Symbol)
+    d1 = get(gt.fields, k1, Dict())
+    d2 = get(d1, k2, Dict())
+    d3 = get(d2, k3, Dict())
+    d4 = get(d3, k4, Dict())
+    get(d4, k5, Dict())
 end
 
 function Base.getproperty(gt::HF, p::Symbol) where HF <: HasFields

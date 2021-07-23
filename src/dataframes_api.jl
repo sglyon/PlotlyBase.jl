@@ -16,27 +16,6 @@ function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symb
     hasproperty(container, val) ? container[!, val] : val
 end
 
-const _MARKER_SYMBOLS = Cycler([
-    "circle"
-    "diamond"
-    "cross"
-    "triangle"
-    "square"
-    "x"
-    "pentagon"
-    "hexagon"
-    "hexagon2"
-    "octagon"
-    "star"
-    "hexagram"
-    "hourglass"
-    "bowtie"
-    "asterisk"
-    "hash"
-    "y"
-    "line"
-])
-
 """
 $(SIGNATURES)
 Build a trace of kind `kind`, using the columns of `df` where possible. In
@@ -131,34 +110,33 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
     label_rename = _symbol_dict(pop!(kwargs, :labels, missing))
 
     # prep groupings (symbol, color)
-    symbol_col = pop!(kwargs, :symbol, missing)
-    has_symbol = !ismissing(symbol_col)
-    symbol_map = Dict{Any,String}()
-    if has_symbol
-        if !_has_group(df, symbol_col)
-            error("DataFrame is missing $(symbol_col) column, cannot set as symbol")
-        else
-            push!(groupby_cols, symbol_col)
-            for (i, val) in enumerate(unique(df[!, symbol_col]))
-                symbol_map[val] = _MARKER_SYMBOLS[i]
-            end
-        end
-    end
+    _has_group_arg = Dict{Symbol,Bool}(k => false for k in [:symbol, :color, :line_dash])
+    _group_maps = Dict{Symbol,Dict{Any,String}}()
+    _group_cols = Dict{Symbol,Symbol}()
+    for _group_arg in keys(_has_group_arg)
+        _group_col = pop!(kwargs, _group_arg, missing)
+        if !ismissing(_group_col)
+            if !_has_group(df, _group_col)
+                error("DataFrame is missing $(_group_col) column, cannot set as $(_group_arg)")
+            else
+                # mark that we have this group and add to list of groupby_cols
+                _has_group_arg[_group_arg] = true
+                push!(groupby_cols, _group_col)
 
-    color_col = pop!(kwargs, :color, missing)
-    has_color = !ismissing(color_col)
-    color_map = Dict{Any,String}()
-    if has_color
-        if !_has_group(df, color_col)
-            error("DataFrame is missing $(color_col) column, cannot set as color")
-        else
-            colorway = _get_colorway(l)
-            push!(groupby_cols, color_col)
-            for (i, val) in enumerate(unique(df[!, color_col]))
-                color_map[val] = colorway[i]
+                # make note of the column that we will use for the groupby
+                _group_cols[_group_arg] = _group_col
+
+                # prepare map from group observation in data to the value in trace
+                _group_map = Dict{Any,String}()
+                defaults = _get_default_seq(l, _group_arg)
+                for (i, val) in enumerate(unique(df[!, _group_col]))
+                    _group_map[val] = defaults[i]
+                end
+                _group_maps[_group_arg] = _group_map
             end
         end
     end
+    group_attr_pairs = [(:symbol, :marker_symbol), (:color, :marker_color), (:line_dash, :line_dash)]
 
     if length(groupby_cols) > 0 && (:group in kw_keys)
         @warn "One of color or symbol present AND group -- group will be ignored"
@@ -222,13 +200,11 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
                 extra_kw.legendgroup = group_name
                 extra_kw.showlegend = false
             end
-            if has_symbol
-                symbol_col_val = sub_dfg[1, symbol_col]
-                extra_kw.marker_symbol = symbol_map[symbol_col_val]
-            end
-            if has_color
-                color_col_val = sub_dfg[1, color_col]
-                extra_kw.marker_color = color_map[color_col_val]
+            for (groupname, trace_attr) in group_attr_pairs
+                if _has_group_arg[groupname]
+                    obs = sub_dfg[1, _group_cols[groupname]]
+                    extra_kw[trace_attr] = _group_maps[groupname][obs]
+                end
             end
             traces = GenericTrace(sub_dfg; kwargs..., extra_kw...,)
 
