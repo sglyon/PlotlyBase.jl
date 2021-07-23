@@ -209,6 +209,9 @@ function Base.merge!(hf1::HasFields, hf2::HasFields)
     hf1
 end
 
+Base.merge(d::Dict{Symbol}, hf2::HasFields) = merge(d, hf2.fields)
+Base.merge!(d::Dict{Symbol}, hf2::HasFields) = merge!(d, hf2.fields)
+
 function setifempty!(hf::HasFields, key::Symbol, value)
     if _isempty(hf[key])
         hf[key] = value

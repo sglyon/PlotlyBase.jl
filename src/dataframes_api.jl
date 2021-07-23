@@ -40,7 +40,7 @@ useful when using the `group` keyword arugment, as the function will be applied
 to each SubDataFrame. In the example above, the name attribute would set a
 different mean for each group.
 """
-function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="scatter", kwargs...)
+function GenericTrace(df::DataFrames.AbstractDataFrame; group=missing, kind="scatter", kwargs...)
     if _has_group(df, group)
         _traces = []
         for dfg in collect(DataFrames.groupby(df, group))
@@ -55,7 +55,7 @@ function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="sca
         end
         return GenericTrace[t for t in _traces]
     else
-        if (group !== nothing)
+        if !ismissing(group)
             @warn "Unknown group $(group), skipping"
         end
     end
@@ -98,29 +98,35 @@ then call `by(df, group)` and construct one trace per SubDataFrame, passing
 all other keyword arguments. This means all keyword arguments are passed
 applied to all traces
 """
-function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kw...)
+function Plot(
+        df::DataFrames.AbstractDataFrame,
+        l::Layout=Layout();
+        category_order=missing,
+        labels::_Maybe{Union{PlotlyAttribute,<: Dict}}=missing,
+        facet_row::_Maybe{Symbol}=missing,
+        facet_col::_Maybe{Symbol}=missing,
+        group::_Maybe{Union{Symbol,Vector{Symbol}}}=missing,
+        symbol::_Maybe{Symbol}=missing,
+        color::_Maybe{Symbol}=missing,
+        line_dash::_Maybe{Symbol}=missing,
+        style::Style=CURRENT_STYLE[],
+        kw...
+    )
     groupby_cols = Symbol[]
     facet_cols = Symbol[]
     kwargs = Dict(kw)
     kw_keys = keys(kwargs)
 
-    # check for special kwargs from plotly.express api
-    cats = _symbol_dict(pop!(kwargs, :category_order, missing))
-    label_rename = _symbol_dict(pop!(kwargs, :labels, missing))
-
     # prep groupings (symbol, color)
-    _has_group_arg = Dict{Symbol,Bool}(k => false for k in [:symbol, :color, :line_dash])
+    _group_args = (;symbol, color, line_dash)
     _group_maps = Dict{Symbol,Dict{Any,String}}()
     _group_cols = Dict{Symbol,Symbol}()
-    for _group_arg in keys(_has_group_arg)
-        _group_col = pop!(kwargs, _group_arg, missing)
+    for (_group_arg, _group_col) in pairs(_group_args)
         if !ismissing(_group_col)
             if !_has_group(df, _group_col)
                 error("DataFrame is missing $(_group_col) column, cannot set as $(_group_arg)")
             else
                 # mark that we have this group and add to list of groupby_cols
-                _has_group_arg[_group_arg] = true
                 push!(groupby_cols, _group_col)
 
                 # make note of the column that we will use for the groupby
@@ -138,25 +144,51 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
     end
     group_attr_pairs = [(:symbol, :marker_symbol), (:color, :marker_color), (:line_dash, :line_dash)]
 
-    if length(groupby_cols) > 0 && (:group in kw_keys)
+    if length(groupby_cols) > 0 && !ismissing(group)
         @warn "One of color or symbol present AND group -- group will be ignored"
+    end
+
+    # handle labels
+    label_map = Dict{Symbol,Any}(pairs((;facet_row, facet_col, color, symbol, line_dash)))
+    for v in values(label_map)
+        !ismissing(v) && setindex!(label_map, v, v)
+    end
+    if !ismissing(labels)
+        for (k, v) in pairs(_symbol_dict(labels))
+            label_map[k] = v
+        end
+    end
+
+    # axis titles
+    for ax in [:x, :y, :z]
+        if ax in kw_keys
+            ax_val = kwargs[ax]
+            # use `get` below because if something was passed into labels it
+            # will already  be set in `label_map` and we should use the Given
+            # label. Otherwise use hte value directly.
+            # e.g.  in plot(x=:total_bill, labels=Dict(:total_bill=>"Total Bill"))
+            # label_map[:total_bill] will be "Total Bill", so we should set
+            # label_map[:x] = "Total Bill".
+            label_map[ax] = get(label_map, ax_val, ax_val)
+            label_map[ax_val] = ax_val
+        end
     end
 
     rows = []
     cols = []
-    if :facet_row in kw_keys
-        if !_has_group(df, Symbol(kwargs[:facet_row]))
-            error("DataFrame is missing $(kwargs[:facet_row]), cannot set as facet_row")
+    if !ismissing(facet_row)
+        if !_has_group(df, facet_row)
+            error("DataFrame is missing $(facet_row), cannot set as facet_row")
         else
-            rows = unique(df[:, Symbol(kwargs[:facet_row])])
+            rows = unique(df[:, facet_row])
         end
     end
 
-    if :facet_col in kw_keys
-        if !_has_group(df, Symbol(kwargs[:facet_col]))
-            error("DataFrame is missing $(kwargs[:facet_col]), cannot set as facet_col")
+    if !ismissing(facet_col)
+        if !_has_group(df, facet_col)
+            error("DataFrame is missing $(facet_col), cannot set as facet_col")
         else
-            cols = unique(df[:, Symbol(kwargs[:facet_col])])
+            cols = unique(df[:, facet_col])
         end
     end
 
@@ -167,17 +199,15 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
     if Nrows > 1 || Ncols > 1
         subplot_kw = Dict{Symbol,Any}()
         if Ncols > 1
-            facet_col = Symbol(kwargs[:facet_col])
             subplot_kw[:cols] = Ncols
-            subplot_kw[:column_titles] = map(x -> "$(facet_col)=$(x)", cols)
+            subplot_kw[:column_titles] = map(x -> "$(label_map[facet_col])=$(x)", cols)
             subplot_kw[:shared_yaxes] = true
             push!(facet_cols, facet_col)
         end
 
         if Nrows > 1
-            facet_row = Symbol(kwargs[:facet_row])
             subplot_kw[:rows] = Nrows
-            subplot_kw[:row_titles] = map(x -> "$(facet_row)=$(x)", rows)
+            subplot_kw[:row_titles] = map(x -> "$(label_map[facet_row])=$(x)", rows)
             subplot_kw[:shared_xaxes] = true
             push!(facet_cols, facet_row)
         end
@@ -189,8 +219,8 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
     out = Plot(out_layout)
 
     for dfg in collect(DataFrames.groupby(df, facet_cols))
-        row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_row]]), rows)
-        col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_col]]), cols)
+        row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, facet_row]), rows)
+        col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, facet_col]), cols)
 
         for sub_dfg in collect(DataFrames.groupby(dfg, groupby_cols))
             extra_kw = attr()
@@ -201,12 +231,12 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
                 extra_kw.showlegend = false
             end
             for (groupname, trace_attr) in group_attr_pairs
-                if _has_group_arg[groupname]
+                if !ismissing(getfield(_group_args, groupname))
                     obs = sub_dfg[1, _group_cols[groupname]]
                     extra_kw[trace_attr] = _group_maps[groupname][obs]
                 end
             end
-            traces = GenericTrace(sub_dfg; kwargs..., extra_kw...,)
+            traces = GenericTrace(sub_dfg; group=group, kwargs..., extra_kw...,)
 
             traces_vec = traces isa GenericTrace ? [traces] : traces
             for trace in traces_vec
@@ -217,7 +247,8 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
 
     # turn on legend once for each
     if length(groupby_cols) > 0
-        out.layout[:legend_title_text] = join(String.(groupby_cols), ", ")
+        group_labels = getindex.(Ref(label_map), groupby_cols)
+        out.layout[:legend_title_text] = join(string.(group_labels), ", ")
         seen = Set()
         for trace in out.data
             grp = trace.legendgroup
@@ -230,25 +261,17 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
 
     out.layout.legend_tracegroupgap = 0
 
-    # add subplot axis labels.
-    ax_titles = Dict{Symbol,Any}()
-    for ax in [:x, :y, :z]
-        if ax in kw_keys
-            ax_titles[ax] = kwargs[ax]
-        end
-    end
-
     # add x axis title to bottom row of subplots and y axis title to left column
     for gr in out.layout.subplots.grid_ref[:, 1]
         yname = gr[1].layout_keys[2]
-        if :y in keys(ax_titles)
-            setifempty!(out.layout, Symbol("$(yname)_title_text"), ax_titles[:y])
+        if :y in keys(label_map)
+            setifempty!(out.layout, Symbol("$(yname)_title_text"), label_map[:y])
         end
     end
     for gr in out.layout.subplots.grid_ref[end, :]
         xname = gr[1].layout_keys[1]
-        if :x in keys(ax_titles)
-            setifempty!(out.layout, Symbol("$(xname)_title_text"), ax_titles[:x])
+        if :x in keys(label_map)
+            setifempty!(out.layout, Symbol("$(xname)_title_text"), label_map[:x])
         end
     end
 
