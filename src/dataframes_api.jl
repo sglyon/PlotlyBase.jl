@@ -1,3 +1,4 @@
+using Base:Symbol
 # utilities
 
 _has_group(df::DataFrames.AbstractDataFrame, group::Any) = false
@@ -8,12 +9,33 @@ end
 
 _group_name(df::DataFrames.AbstractDataFrame, group::Symbol) = df[1, group]
 function _group_name(df::DataFrames.AbstractDataFrame, groups::Vector{Symbol})
-    string("(", join([df[1, g] for g in groups], ", "), ")")
+    join([df[1, g] for g in groups], ", ")
 end
 
 function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symbol)
     hasproperty(container, val) ? container[!, val] : val
 end
+
+const _MARKER_SYMBOLS = Cycler([
+    "circle"
+    "diamond"
+    "cross"
+    "triangle"
+    "square"
+    "x"
+    "pentagon"
+    "hexagon"
+    "hexagon2"
+    "octagon"
+    "star"
+    "hexagram"
+    "hourglass"
+    "bowtie"
+    "asterisk"
+    "hash"
+    "y"
+    "line"
+])
 
 """
 $(SIGNATURES)
@@ -43,7 +65,14 @@ function GenericTrace(df::DataFrames.AbstractDataFrame; group=nothing, kind="sca
     if _has_group(df, group)
         _traces = []
         for dfg in collect(DataFrames.groupby(df, group))
-            push!(_traces,  GenericTrace(dfg; kind=kind, name=_group_name(dfg, group), kwargs...))
+            trace = GenericTrace(
+                dfg;
+                kind=kind,
+                name=_group_name(dfg, group),
+                legendgroup=_group_name(dfg, group),
+                kwargs...
+            )
+            push!(_traces,  trace)
         end
         return GenericTrace[t for t in _traces]
     else
@@ -91,15 +120,49 @@ all other keyword arguments. This means all keyword arguments are passed
 applied to all traces
 """
 function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...)
+              style::Style=CURRENT_STYLE[], kw...)
+    groupby_cols = Symbol[]
+    facet_cols = Symbol[]
+    kwargs = Dict(kw)
     kw_keys = keys(kwargs)
-    # set axis titles
-    for ax in [:x, :y, :z]
-        ax in kw_keys && setifempty!(l, Symbol(ax, "axis_title"), kwargs[ax])
+
+    # check for special kwargs from plotly.express api
+    cats = _symbol_dict(pop!(kwargs, :category_order, missing))
+    label_rename = _symbol_dict(pop!(kwargs, :labels, missing))
+
+    # prep groupings (symbol, color)
+    symbol_col = pop!(kwargs, :symbol, missing)
+    has_symbol = !ismissing(symbol_col)
+    symbol_map = Dict{Any,String}()
+    if has_symbol
+        if !_has_group(df, symbol_col)
+            error("DataFrame is missing $(symbol_col) column, cannot set as symbol")
+        else
+            push!(groupby_cols, symbol_col)
+            for (i, val) in enumerate(unique(df[!, symbol_col]))
+                symbol_map[val] = _MARKER_SYMBOLS[i]
+            end
+        end
     end
 
-    # set legend title
-    :group in kw_keys && setifempty!(l, :legend_title_text, kwargs[:group])
+    color_col = pop!(kwargs, :color, missing)
+    has_color = !ismissing(color_col)
+    color_map = Dict{Any,String}()
+    if has_color
+        if !_has_group(df, color_col)
+            error("DataFrame is missing $(color_col) column, cannot set as color")
+        else
+            colorway = _get_colorway(l)
+            push!(groupby_cols, color_col)
+            for (i, val) in enumerate(unique(df[!, color_col]))
+                color_map[val] = colorway[i]
+            end
+        end
+    end
+
+    if length(groupby_cols) > 0 && (:group in kw_keys)
+        @warn "One of color or symbol present AND group -- group will be ignored"
+    end
 
     rows = []
     cols = []
@@ -122,43 +185,98 @@ function Plot(df::DataFrames.AbstractDataFrame, l::Layout=Layout();
     Nrows = max(1, length(rows))
     Ncols = max(1, length(cols))
 
+    out_layout = l
     if Nrows > 1 || Ncols > 1
         subplot_kw = Dict{Symbol,Any}()
-        groupby_cols = Symbol[]
         if Ncols > 1
+            facet_col = Symbol(kwargs[:facet_col])
             subplot_kw[:cols] = Ncols
-            subplot_kw[:column_titles] = cols
+            subplot_kw[:column_titles] = map(x -> "$(facet_col)=$(x)", cols)
             subplot_kw[:shared_yaxes] = true
-            push!(groupby_cols, Symbol(kwargs[:facet_col]))
+            push!(facet_cols, facet_col)
         end
 
         if Nrows > 1
+            facet_row = Symbol(kwargs[:facet_row])
             subplot_kw[:rows] = Nrows
-            subplot_kw[:row_titles] = rows
+            subplot_kw[:row_titles] = map(x -> "$(facet_row)=$(x)", rows)
             subplot_kw[:shared_xaxes] = true
-            push!(groupby_cols, Symbol(kwargs[:facet_row]))
+            push!(facet_cols, facet_row)
         end
 
         subplots = Subplots(; subplot_kw...)
-        subplot_layout = Layout(subplots; l.fields...)
-        out = Plot(subplot_layout)
+        out_layout = Layout(subplots; out_layout.fields...)
+    end
 
-        for dfg in collect(DataFrames.groupby(df, groupby_cols))
-            row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_row]]), rows)
-            col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_col]]), cols)
-            traces = GenericTrace(dfg; kwargs...)
+    out = Plot(out_layout)
+
+    for dfg in collect(DataFrames.groupby(df, facet_cols))
+        row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_row]]), rows)
+        col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, kwargs[:facet_col]]), cols)
+
+        for sub_dfg in collect(DataFrames.groupby(dfg, groupby_cols))
+            extra_kw = attr()
+            group_name = _group_name(sub_dfg, groupby_cols)
+            if length(group_name) > 0
+                extra_kw.name = group_name
+                extra_kw.legendgroup = group_name
+                extra_kw.showlegend = false
+            end
+            if has_symbol
+                symbol_col_val = sub_dfg[1, symbol_col]
+                extra_kw.marker_symbol = symbol_map[symbol_col_val]
+            end
+            if has_color
+                color_col_val = sub_dfg[1, color_col]
+                extra_kw.marker_color = color_map[color_col_val]
+            end
+            traces = GenericTrace(sub_dfg; kwargs..., extra_kw...,)
 
             traces_vec = traces isa GenericTrace ? [traces] : traces
             for trace in traces_vec
                 add_trace!(out, trace, row=row_ix, col=col_ix)
             end
         end
-
-        return out
     end
 
+    # turn on legend once for each
+    if length(groupby_cols) > 0
+        out.layout[:legend_title_text] = join(String.(groupby_cols), ", ")
+        seen = Set()
+        for trace in out.data
+            grp = trace.legendgroup
+            if !(grp in seen)
+                push!(seen, grp)
+                trace.showlegend = true
+            end
+        end
+    end
 
-    Plot(GenericTrace(df; kwargs...), l, style=style)
+    out.layout.legend_tracegroupgap = 0
+
+    # add subplot axis labels.
+    ax_titles = Dict{Symbol,Any}()
+    for ax in [:x, :y, :z]
+        if ax in kw_keys
+            ax_titles[ax] = kwargs[ax]
+        end
+    end
+
+    # add x axis title to bottom row of subplots and y axis title to left column
+    for gr in out.layout.subplots.grid_ref[:, 1]
+        yname = gr[1].layout_keys[2]
+        if :y in keys(ax_titles)
+            setifempty!(out.layout, Symbol("$(yname)_title_text"), ax_titles[:y])
+        end
+    end
+    for gr in out.layout.subplots.grid_ref[end, :]
+        xname = gr[1].layout_keys[1]
+        if :x in keys(ax_titles)
+            setifempty!(out.layout, Symbol("$(xname)_title_text"), ax_titles[:x])
+        end
+    end
+
+    return out
 end
 
 """

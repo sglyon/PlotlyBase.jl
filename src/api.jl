@@ -45,7 +45,7 @@ fork(p::Plot) = Plot(deepcopy(p.data), copy(p.layout))
 # Javascript API #
 # -------------- #
 
-#=
+#= 
 
 this function is internal and allows us to match plotly.js semantics in
 `resytle!`. The reason is that if you try to set an attribute on a trace with
@@ -72,7 +72,7 @@ _apply_restyle_setindex!(hf::Union{AbstractDict,HasFields}, k::Symbol, v, i::Int
     setindex!(hf, v, k)
 
 
-#=
+#= 
 Wrap the vector so it repeats to be at least length N
 
 This means
@@ -482,4 +482,22 @@ function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, second
     merge!(trace, ref.trace_kwargs)
     push!(p.data, trace)
     p
+end
+
+## internal helpers
+_get_colorway(p::Plot) = _get_colorway(p.layout)
+function _get_colorway(l::Layout)
+    D3_colorway = [
+        "#1F77B4",
+        "#FF7F0E",
+        "#2CA02C",
+        "#D62728",
+        "#9467BD",
+        "#8C564B",
+        "#E377C2",
+        "#7F7F7F",
+        "#BCBD22",
+        "#17BECF",
+    ]
+    Cycler(get(l, :template_colorway, D3_colorway))
 end
