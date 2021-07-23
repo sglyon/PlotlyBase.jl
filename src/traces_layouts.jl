@@ -330,6 +330,13 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, k1::Sym
     end
 end
 
+function Base.setproperty!(hf::HF, p::Symbol, val) where HF <: HasFields
+    if hasfield(HF, p)
+        return setfield!(hf, p, val)
+    end
+    setindex!(hf, val, p)
+end
+
 
 # now on to the simpler getindex methods. They will try to get the desired
 # key, but if it doesn't exist an empty dict is returned
@@ -370,6 +377,13 @@ function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
     d2 = get(d1, k2, Dict())
     d3 = get(d2, k3, Dict())
     get(d3, k4, Dict())
+end
+
+function Base.getproperty(gt::HF, p::Symbol) where HF <: HasFields
+    if hasfield(HF, p)
+        return getfield(gt, p)
+    end
+    getindex(gt, p)
 end
 
 # Now to the pop! methods
