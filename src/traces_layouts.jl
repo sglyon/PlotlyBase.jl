@@ -20,10 +20,10 @@ end
 
 mutable struct Layout{T <: AbstractDict{Symbol,Any}} <: AbstractLayout
     fields::T
-    subplots::_Maybe{Subplots}
+    subplots::Subplots
 
     function Layout{T}(fields::T; kwargs...) where T
-        l = new{T}(merge(_layout_defaults(), fields), missing)
+        l = new{T}(merge(_layout_defaults(), fields), Subplots())
         foreach(x -> setindex!(l, x[2], x[1]), kwargs)
         l
     end
@@ -161,6 +161,8 @@ hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
 const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute,PlotlyFrame}
 const _LikeAssociative = Union{PlotlyAttribute,AbstractDict}
 
+_symbol_dict(hf::HasFields) = _symbol_dict(hf.fields)
+
 #= NOTE: Generate this list with the following code
 using JSON, PlotlyJS, PlotlyBase
 d = JSON.parsefile(Pkg.dir("PlotlyJS", "deps", "plotschema.json"))
@@ -189,6 +191,9 @@ _UNDERSCORE_ATTRS = collect(
 const _UNDERSCORE_ATTRS = [:error_x, :copy_ystyle, :error_z, :plot_bgcolor,
                            :paper_bgcolor, :copy_zstyle, :error_y, :hr_name]
 
+_isempty(x) = isempty(x)
+_isempty(x::Union{Symbol,String}) = false
+
 function Base.merge(hf::HasFields, d::Dict)
     out = deepcopy(hf)
     for (k, v) in d
@@ -205,7 +210,7 @@ function Base.merge!(hf1::HasFields, hf2::HasFields)
 end
 
 function setifempty!(hf::HasFields, key::Symbol, value)
-    if isempty(hf[key])
+    if _isempty(hf[key])
         hf[key] = value
     end
 end

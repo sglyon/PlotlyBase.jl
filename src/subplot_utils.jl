@@ -157,7 +157,13 @@ end
     row_titles::_Maybe{Vector{String}} = missing
     x_title::_Maybe{String} = missing
     y_title::_Maybe{String} = missing
-    grid_ref::GridRef = GridRef(undef, (rows, cols))
+    grid_ref::GridRef = let
+        gr = GridRef(undef, (rows, cols))
+        if rows == 1 && cols == 1
+            gr[1, 1] = [SubplotRef(subplot_kind="xy", layout_keys=[:xaxis, :yaxis], trace_kwargs=attr())]
+        end
+        gr
+    end
 
     # computed
     has_secondary_y::Bool = any(!ismissing(s) && getfield(s, :secondary_y) for s in specs)
