@@ -81,7 +81,6 @@ include("api.jl")
 include("convenience_api.jl")
 include("recession_bands.jl")
 include("output.jl")
-include("kaleido.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;config::PlotConfig=PlotConfig())
@@ -132,10 +131,9 @@ export
     add_recession_bands!, Cycler,
 
     # other
-    savejson, savefig
+    savejson
 
 function __init__()
-    @async _start_kaleido_process()
     @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
 
         function IJulia.display_dict(p::Plot)

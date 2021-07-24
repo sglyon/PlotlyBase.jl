@@ -196,9 +196,6 @@ function to_html(
     return print(io, html_div)
 end  # function
 
-# just declare here so we can overload elsewhere
-function savefig end
-
 function savejson(p::Plot, fn::AbstractString)
     ext = split(fn, ".")[end]
     if ext == "json"
