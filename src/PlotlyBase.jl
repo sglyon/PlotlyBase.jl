@@ -7,8 +7,6 @@ using Requires
 using UUIDs
 using Dates
 using Logging
-using Base64
-using Pkg.Artifacts
 
 import Base: ==
 
