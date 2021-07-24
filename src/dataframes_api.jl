@@ -156,7 +156,6 @@ function Plot(
         symbol::_Maybe{Symbol}=missing,
         color::_Maybe{Symbol}=missing,
         line_dash::_Maybe{Symbol}=missing,
-        style::Style=CURRENT_STYLE[],
         kw...
     )
     groupby_cols = Symbol[]
@@ -370,8 +369,8 @@ Construct a plot from `df`, passing the provided values of x and y as keyword
 arguments. See docstring for other method for more information.
 """
 function Plot(d::DataFrames.AbstractDataFrame, x::Symbol, y::Symbol, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...)
-    Plot(d, l; x=x, y=y, style=style, kwargs...)
+              kwargs...)
+    Plot(d, l; x=x, y=y, kwargs...)
 end
 
 """
@@ -380,8 +379,8 @@ Construct a plot from `df`, passing the provided value y as a keyword argument.
 See docstring for other method for more information.
 """
 function Plot(d::DataFrames.AbstractDataFrame, y::Symbol, l::Layout=Layout();
-              style::Style=CURRENT_STYLE[], kwargs...)
-    Plot(d, l; y=y, style=style, kwargs...)
+              kwargs...)
+    Plot(d, l; y=y, kwargs...)
 end
 
 
