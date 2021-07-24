@@ -37,7 +37,7 @@ for t in _TRACE_TYPES
     eval(Expr(:export, t))
 end
 
-Base.copy(hf::HF) where {HF<:HasFields} = HF(deepcopy(hf.fields))
+Base.copy(hf::HF) where {HF <: HasFields} = HF(deepcopy(hf.fields))
 Base.copy(p::Plot) = Plot(AbstractTrace[copy(t) for t in p.data], copy(p.layout))
 fork(p::Plot) = Plot(deepcopy(p.data), copy(p.layout))
 
@@ -45,7 +45,7 @@ fork(p::Plot) = Plot(deepcopy(p.data), copy(p.layout))
 # Javascript API #
 # -------------- #
 
-#=
+#= 
 
 this function is internal and allows us to match plotly.js semantics in
 `resytle!`. The reason is that if you try to set an attribute on a trace with
@@ -62,9 +62,7 @@ All other field types are let through directly
 NOTE that the argument `i` here is _not_ the same as the argument `ind` below.
 `i` tracks which index we should use when extracting an element from
 `v::Union{AbstractArray,Tuple}` whereas `ind` below specifies which trace to
-apply the update to.
-
-=#
+apply the update to. =#
 function _apply_restyle_setindex!(hf::Union{AbstractDict,HasFields}, k::Symbol,
                                   v::Union{AbstractArray,Tuple}, i::Int)
     setindex!(hf, v[i], k)
@@ -74,7 +72,7 @@ _apply_restyle_setindex!(hf::Union{AbstractDict,HasFields}, k::Symbol, v, i::Int
     setindex!(hf, v, k)
 
 
-#=
+#= 
 Wrap the vector so it repeats to be at least length N
 
 This means
@@ -87,10 +85,9 @@ _prep_restyle_vec_setindex([1, 2], 4) --> [1, 2, 1, 2]
 _prep_restyle_vec_setindex((1, [42, 4]), 2) --> [1, [42, 4]]
 _prep_restyle_vec_setindex((1, [42, 4]), 3) --> [1, [42, 4], 1]
 _prep_restyle_vec_setindex((1, [42, 4]), 4) --> [1, [42, 4], 1, [42, 4]]
-```
-=#
+``` =#
 _prep_restyle_vec_setindex(v::AbstractVector, N::Int) =
-    repeat(v, outer=[ceil(Int, N/length(v))])[1:N]
+    repeat(v, outer=[ceil(Int, N / length(v))])[1:N]
 
 # treat tuples like vectors, just like JSON.json does
 _prep_restyle_vec_setindex(v::Tuple, N::Int) =
@@ -101,10 +98,10 @@ _prep_restyle_vec_setindex(v, N::Int) = v
 
 function _update_fields(hf::GenericTrace, i::Int, update::Dict=Dict(); kwargs...)
     # apply updates in the dict w/out `_` processing
-    for (k,v) in update
+    for (k, v) in update
         _apply_restyle_setindex!(hf.fields, k, v, i)
     end
-    for (k,v) in kwargs
+    for (k, v) in kwargs
         _apply_restyle_setindex!(hf, k, v, i)
     end
     hf
@@ -117,9 +114,7 @@ Update `l` using update dict and/or kwargs
 """
 function relayout!(l::Layout, update::AbstractDict=Dict(); kwargs...)
     merge!(l.fields, update)  # apply updates in the dict w/out `_` processing
-    for (k,v) in kwargs
-        setindex!(l, v, k)
-    end
+    merge!(l, Layout(;kwargs...))
     l
 end
 
@@ -318,7 +313,7 @@ Add trace(s) at a specified location in the Plot's array of data.
 The new traces will start at index `p.data[i]`
 """
 function addtraces!(p::Plot, i::Int, traces::AbstractTrace...)
-    new_data = vcat(p.data[1:i-1], traces..., p.data[i:end])
+    new_data = vcat(p.data[1:i - 1], traces..., p.data[i:end])
     p.data = new_data
 end
 
@@ -340,7 +335,7 @@ movetraces!(p::Plot, to_end::Int...) =
 
 function _move_one!(x::AbstractArray, from::Int, to::Int)
     el = splice!(x, from)  # extract the element
-    splice!(x, to:to-1, (el,))  # put it back in the new position
+    splice!(x, to:to - 1, (el,))  # put it back in the new position
     x
 end
 
@@ -352,7 +347,7 @@ Move traces from indices `src` to indices `dest`.
 Both `src` and `dest` must be `Vector{Int}`
 """
 movetraces!(p::Plot, src::AbstractVector{Int}, dest::AbstractVector{Int}) =
-    (map((i,j) -> _move_one!(p.data, i, j), src, dest); p)
+    (map((i, j) -> _move_one!(p.data, i, j), src, dest); p)
 
 function purge!(p::Plot)
     empty!(p.data)
@@ -440,7 +435,7 @@ end
 for f in (:extendtraces!, :prependtraces!)
     @eval begin
         $(f)(p::Plot, inds::Vector{Int}=[1], maxpoints=-1; update...) =
-            ($f)(p, Dict(map(x->(x[1], _tovec(x[2])), update)), inds, maxpoints)
+            ($f)(p, Dict(map(x -> (x[1], _tovec(x[2])), update)), inds, maxpoints)
 
         $(f)(p::Plot, ind::Int, maxpoints=-1; update...) =
             ($f)(p, [ind], maxpoints; update...)
@@ -461,10 +456,21 @@ for f in [:restyle, :relayout, :update, :addtraces, :deletetraces,
     end
 end
 
-function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, secondary_y::Bool=false)
-    if ismissing(p.layout.subplots)
-        error("must create layout using `Subplots` to use `add_trace!`")
+function _check_dim(s::Subplots, dim::Int, val::Int, str::String)
+    n = size(s.grid_ref, dim)
+    if val > n
+        error("This plot only knows about $n $str of subplots, can't use $val")
     end
+end
+
+function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, secondary_y::Bool=false)
+    if row == 1 && col == 1
+        push!(p.data, trace)
+        return p
+    end
+
+    _check_dim(p.layout.subplots, 1, row, "row")
+    _check_dim(p.layout.subplots, 2, col, "col")
 
     refs = p.layout.subplots.grid_ref[row, col]
     if secondary_y && length(refs) == 1
@@ -476,4 +482,95 @@ function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, second
     merge!(trace, ref.trace_kwargs)
     push!(p.data, trace)
     p
+end
+
+## internal helpers
+_get_colorway(p::Plot) = _get_colorway(p.layout)
+function _get_colorway(l::Layout)
+    D3_colorway = [
+        "#1F77B4",
+        "#FF7F0E",
+        "#2CA02C",
+        "#D62728",
+        "#9467BD",
+        "#8C564B",
+        "#E377C2",
+        "#7F7F7F",
+        "#BCBD22",
+        "#17BECF",
+    ]
+    Cycler(get(l, :template_colorway, D3_colorway))
+end
+
+_get_seq_from_template_data(p::Plot, args...; kwargs...) = _get_seq_from_template_data(p.layout, args...; kwargs...)
+function _get_seq_from_template_data(
+        l::Layout,
+        default::Cycler,
+        property_sub_path::Symbol,
+        root_template_path::Symbol=:scatter
+    )
+    template_specs = getindex(l, Symbol("template_data_$(root_template_path)"))
+    if !isempty(template_specs)
+        seq = []
+        default_ix = 0
+        for spec in template_specs
+            want = get(spec, property_sub_path, Dict())
+            if ismissing(want)
+                push!(seq, default[default_ix += 1])
+            else
+                push!(seq, want)
+            end
+        end
+        return Cycler(seq)
+    end
+    return default
+end
+
+function _get_line_dash_seq(l::Union{Layout,Plot})
+    default_line_dash = Cycler([
+        "solid",
+        "dot",
+        "dash",
+        "longdash",
+        "dashdot",
+        "longdashdot",
+    ])
+    return _get_seq_from_template_data(l, default_line_dash, :line_dash, :scatter)
+end
+
+
+function _get_marker_symbol_seq(l::Union{Layout,Plot})
+    default = Cycler([
+        "circle"
+        "diamond"
+        "cross"
+        "triangle"
+        "square"
+        "x"
+        "pentagon"
+        "hexagon"
+        "hexagon2"
+        "octagon"
+        "star"
+        "hexagram"
+        "hourglass"
+        "bowtie"
+        "asterisk"
+        "hash"
+        "y"
+        "line"
+    ])
+    return _get_seq_from_template_data(l, default, :marker_symbol, :scatter)
+end
+
+function _get_default_seq(l::Layout, attribute::Symbol)
+    _getter_funcs = Dict(
+        :line_dash => _get_line_dash_seq,
+        :symbol => _get_marker_symbol_seq,
+        :color => _get_colorway
+    )
+    if attribute in keys(_getter_funcs)
+        return _getter_funcs[attribute](l)
+    end
+    error("Don't know how to get defaults for $(attribute)")
 end

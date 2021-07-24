@@ -20,10 +20,10 @@ end
 
 mutable struct Layout{T <: AbstractDict{Symbol,Any}} <: AbstractLayout
     fields::T
-    subplots::_Maybe{Subplots}
+    subplots::Subplots
 
     function Layout{T}(fields::T; kwargs...) where T
-        l = new{T}(merge(_layout_defaults(), fields), missing)
+        l = new{T}(merge(_layout_defaults(), fields), Subplots())
         foreach(x -> setindex!(l, x[2], x[1]), kwargs)
         l
     end
@@ -161,6 +161,8 @@ hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
 const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute,PlotlyFrame}
 const _LikeAssociative = Union{PlotlyAttribute,AbstractDict}
 
+_symbol_dict(hf::HasFields) = _symbol_dict(hf.fields)
+
 #= NOTE: Generate this list with the following code
 using JSON, PlotlyJS, PlotlyBase
 d = JSON.parsefile(Pkg.dir("PlotlyJS", "deps", "plotschema.json"))
@@ -189,6 +191,9 @@ _UNDERSCORE_ATTRS = collect(
 const _UNDERSCORE_ATTRS = [:error_x, :copy_ystyle, :error_z, :plot_bgcolor,
                            :paper_bgcolor, :copy_zstyle, :error_y, :hr_name]
 
+_isempty(x) = isempty(x)
+_isempty(x::Union{Symbol,String}) = false
+
 function Base.merge(hf::HasFields, d::Dict)
     out = deepcopy(hf)
     for (k, v) in d
@@ -204,8 +209,12 @@ function Base.merge!(hf1::HasFields, hf2::HasFields)
     hf1
 end
 
+Base.merge(d::Dict{Symbol}, hf2::HasFields) = merge(d, hf2.fields)
+Base.merge!(d::Dict{Symbol}, hf2::HasFields) = merge!(d, hf2.fields)
+Base.pairs(hf::HasFields) = pairs(hf.fields)
+
 function setifempty!(hf::HasFields, key::Symbol, value)
-    if isempty(hf[key])
+    if _isempty(hf[key])
         hf[key] = value
     end
 end
@@ -293,6 +302,20 @@ function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
     val
 end
 
+function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
+    k3::Symbol, k4::Symbol, k5::Symbol)
+    d1 = get(gt.fields, k1, Dict())
+    d2 = get(d1, k2, Dict())
+    d3 = get(d2, k3, Dict())
+    d4 = get(d3, k4, Dict())
+    d4[k5] = _obtain_setindex_val(container, val)
+    d3[k4] = d4
+    d2[k3] = d3
+    d1[k2] = d2
+    gt.fields[k1] = d1
+    val
+end
+
 #= NOTE: I need to special case instances when `val` is Associatve like so that
          I can partially update something that already exists.
 
@@ -328,6 +351,13 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, k1::Sym
     for (k, v) in val
         setindex!(gt, v, container, k1, k2, k3, k)
     end
+end
+
+function Base.setproperty!(hf::HF, p::Symbol, val) where HF <: HasFields
+    if hasfield(HF, p)
+        return setfield!(hf, p, val)
+    end
+    setindex!(hf, val, p)
 end
 
 
@@ -370,6 +400,22 @@ function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
     d2 = get(d1, k2, Dict())
     d3 = get(d2, k3, Dict())
     get(d3, k4, Dict())
+end
+
+function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
+    k3::Symbol, k4::Symbol, k5::Symbol)
+    d1 = get(gt.fields, k1, Dict())
+    d2 = get(d1, k2, Dict())
+    d3 = get(d2, k3, Dict())
+    d4 = get(d3, k4, Dict())
+    get(d4, k5, Dict())
+end
+
+function Base.getproperty(gt::HF, p::Symbol) where HF <: HasFields
+    if hasfield(HF, p)
+        return getfield(gt, p)
+    end
+    getindex(gt, p)
 end
 
 # Now to the pop! methods

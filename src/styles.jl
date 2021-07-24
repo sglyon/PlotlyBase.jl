@@ -6,28 +6,6 @@ Note that the following styles used values from the matplotlib style library
 - fivethirtyeight
 - seaborn =#
 
-struct Cycler
-    vals::Vector
-end
-
-Base.isempty(c::Cycler) = isempty(c.vals)
-Base.length(c::Cycler) = length(c.vals)
-Cycler(t::Tuple) = Cycler(collect(t))
-Cycler(x::Union{String,Number,Date,Symbol}) = Cycler([x])
-
-function Base.getindex(c::Cycler, ix::Integer)
-    n = length(c.vals)
-    @inbounds v = c.vals[mod1(ix, n)]
-    v
-end
-
-function Base.getindex(c::Cycler, ixs::AbstractVector{<:Integer})
-    [c[i] for i in ixs]
-end
-
-Base.iterate(c::Cycler, s::Int=1) = c[s], s + 1
-Base.IteratorSize(::Cycler) = IsInfinite()
-
 struct Style
     layout::Layout
     global_trace::PlotlyAttribute
