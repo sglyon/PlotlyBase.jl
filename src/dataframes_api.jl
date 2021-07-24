@@ -122,6 +122,28 @@ If `group` is passed and is a Symbol that is one of the column names of `df`,
 then call `by(df, group)` and construct one trace per SubDataFrame, passing
 all other keyword arguments. This means all keyword arguments are passed
 applied to all traces
+
+All keyword arguments are passed directly to the trace constructor, with the
+following exceptions:
+
+- `category_orders`: A mapping from DataFrame column name to a vector of values that
+  appear in that column. Wherever the column is used in the chart (facets, x, y, etc.)
+  the chart elements tied to the column will be sorted according to the vector of values
+  specified here. This ordering can be partial, in which case all elements that appear
+  in the DataFrame, but not in the vector of values specified here, will be included
+  *after* values explicitly listed here.
+- `labels`: A mapping from column names (symbols) to text that should appear on the chart.
+  This can be used to customize the title of axes, title of legend, etc.
+- `facet_row`: A symbol denoting which DataFrame column should be used to create
+  facetted subplots in the vertical direction.
+- `facet_col`: A symbol denoting which DataFrame column should be used to create
+  facetted subplots in the horizontal direction.
+- `symbol`: A symbol noting which column should be used for the marker symbol. The values
+  of this column are not used directly, but rather a new trace will be created for each
+  unique value in this column. Each trace will have a different marker symbol, such
+  as circle, diamond, square, etc.
+- `color`: Similar to `symbol`, but for the color of a trace
+- `line_dash`: Similar to `symbol`, but for the line style of a trace.
 """
 function Plot(
         df::DataFrames.AbstractDataFrame,
