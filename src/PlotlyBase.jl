@@ -1,8 +1,5 @@
 module PlotlyBase
 
-using Base.Iterators: lowercase
-using Dates: default
-using Base.Iterators: fieldname
 using Base.Iterators
 using JSON
 using DocStringExtensions
@@ -63,7 +60,6 @@ Base.IteratorSize(::Cycler) = IsInfinite()
 include("plot_config.jl")
 include("subplot_utils.jl")
 include("traces_layouts.jl")
-include("styles.jl")
 
 # core plot object
 mutable struct Plot{TT<:AbstractVector{<:AbstractTrace},TL<:AbstractLayout,TF<:AbstractVector{<:PlotlyFrame}}
@@ -72,7 +68,6 @@ mutable struct Plot{TT<:AbstractVector{<:AbstractTrace},TL<:AbstractLayout,TF<:A
     frames::TF
     divid::UUID
     config::PlotConfig
-    style::Style
 end
 
 # Default `convert` fallback constructor
@@ -89,24 +84,24 @@ include("output.jl")
 include("kaleido.jl")
 
 # Set some defaults for constructing `Plot`s
-function Plot(;style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
-    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config, style)
+function Plot(;config::PlotConfig=PlotConfig())
+    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config)
 end
 
 function Plot(data::AbstractVector{<:AbstractTrace}, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
-              style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
-    Plot(data, layout, frames, uuid4(), config, style)
+              config::PlotConfig=PlotConfig())
+    Plot(data, layout, frames, uuid4(), config)
 end
 
 function Plot(data::AbstractTrace, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
-              style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
-    Plot([data], layout, frames; config=config, style=style)
+              config::PlotConfig=PlotConfig())
+    Plot([data], layout, frames; config=config)
 end
 
 # empty plot
 function Plot(layout::Layout, frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];
-    style::Style=CURRENT_STYLE[], config::PlotConfig=PlotConfig())
-    Plot(GenericTrace[], layout, frames; config=config, style=style)
+    config::PlotConfig=PlotConfig())
+    Plot(GenericTrace[], layout, frames; config=config)
 end
 
 
@@ -134,21 +129,13 @@ export
     stem,
 
     # convenience stuff
-    add_recession_bands!,
-
-    # styles
-    use_style!, style, Style, Cycler, STYLES,
+    add_recession_bands!, Cycler,
 
     # other
     savejson, savefig
 
 function __init__()
-    env_style = Symbol(get(ENV, "PLOTLYJS_STYLE", ""))
-    if env_style in STYLES
-        global DEFAULT_STYLE
-        DEFAULT_STYLE[] = Style(env_style)
-    end
-    _start_kaleido_process()
+    @async _start_kaleido_process()
     @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
 
         function IJulia.display_dict(p::Plot)

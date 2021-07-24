@@ -3,26 +3,6 @@
 # -------------------------------- #
 JSON.lower(a::HasFields) = a.fields
 
-function _apply_style_axis!(p::Plot, ax, force::Bool=false)
-    if haskey(p.style.layout.fields, Symbol(ax, "axis")) || force
-        ax_names = Iterators.filter(
-            _x -> startswith(string(_x), "$(ax)axis"),
-            keys(p.layout.fields)
-        )
-
-        for ax_name in ax_names
-            cur = p.layout.fields[ax_name]
-            cur = merge(p.style.layout[Symbol(ax, "axis")], cur)
-            p.layout.fields[ax_name] = cur
-        end
-
-        if isempty(ax_names)
-            nm = Symbol(ax, "axis")
-            p.layout.fields[nm] = deepcopy(p.style.layout[nm])
-        end
-    end
-
-end
 
 _maybe_set_attr!(hf::HasFields, k::Symbol, v::Any) =
     get(hf, k, nothing) == nothing && setindex!(hf, v, k)
@@ -54,42 +34,6 @@ function _maybe_set_attr!(p::Plot, k::Symbol, v::Cycler)
 end
 
 function JSON.lower(p::Plot)
-    _is3d = any(_x -> occursin("3d", string(_x[:type])), p.data)
-
-    # apply layout attrs
-    if !isempty(p.style.layout)
-        # force xaxis and yaxis if plot is 2d
-        _apply_style_axis!(p, "x", !_is3d)
-        _apply_style_axis!(p, "y", !_is3d)
-        _apply_style_axis!(p, "z")
-
-        # extract this so we can pop! off xaxis and yaxis so they aren't
-        # applied again
-        la = deepcopy(p.style.layout)
-        pop!(la.fields, :xaxis, nothing)
-        pop!(la.fields, :yaxis, nothing)
-        pop!(la.fields, :zaxis, nothing)
-        _subplots = p.layout.subplots
-        p.layout = merge(la, p.layout)
-        p.layout.subplots = _subplots
-    end
-
-    # apply global trace attrs
-    if !isempty(p.style.global_trace)
-        for (k, v) in p.style.global_trace.fields
-            _maybe_set_attr!(p, k, v)
-        end
-    end
-
-    # apply trace specific attrs
-    if !isempty(p.style.trace)
-        for t in p.data
-            t_type = Symbol(get(t, :type, :scatter))
-            for (k, v) in get(p.style.trace, t_type, Dict())
-                _maybe_set_attr!(p, k, v)
-            end
-        end
-    end
     Dict(:data => p.data, :layout => p.layout, :frames => p.frames, :config => JSON.lower(p.config))
 end
 

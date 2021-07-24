@@ -184,7 +184,7 @@ function savefig(
     return fn
 end
 
-_kaleido_running() = isopen(P.stdin) && process_running(P.proc)
+_kaleido_running() = isdefined(P, :stdin) && isopen(P.stdin) && process_running(P.proc)
 _ensure_kaleido_running() = !_kaleido_running() && _restart_kaleido_process()
 
 const _KALEIDO_MIMES = Dict(

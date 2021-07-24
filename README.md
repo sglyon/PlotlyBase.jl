@@ -13,4 +13,3 @@ Docs for this package are forthcoming, but check out the following sections of t
 - [Preliminaries](http://juliaplots.org/PlotlyJS.jl/stable/basics/)
 - [Building Blocks](http://juliaplots.org/PlotlyJS.jl/stable/building_traces_layouts/)
 - [Putting it together](http://juliaplots.org/PlotlyJS.jl/stable/syncplots/) up until the discussion of syncplots.
-- [Styles](http://juliaplots.org/PlotlyJS.jl/stable/styles/)
