@@ -16,7 +16,7 @@ vspace = nr == 1 ? 0.0 : (1 - height * nr) / (nr - 1)
 end
 
 function gen_layout(rows::Tuple{Vararg{Int}}, subplot_titles::Bool=false)
-    
+
     x = 0.0  # start from left
     y = 1.0  # start from top
 
@@ -140,8 +140,17 @@ function _init_subplot_xy!(
     # Build layout.xaxis/layout.yaxis containers
     xaxis_name = "xaxis$(x_count > 1 ? x_count : "")"
     yaxis_name = "yaxis$(y_count > 1 ? y_count : "")"
-    x_axis = attr(domain=domain.x, anchor=x_anchor)
-    y_axis = attr(domain=domain.y, anchor=y_anchor)
+
+    #  copy over existing xaxis/yaxis objects, but delete titles
+    x_axis = attr(;layout.xaxis...)
+    y_axis = attr(;layout.yaxis...)
+    x_axis.domain = domain.x
+    x_axis.anchor = x_anchor
+    y_axis.domain = domain.y
+    y_axis.anchor = y_anchor
+
+    pop!(x_axis, :title_text)
+    pop!(y_axis, :title_text)
     layout[xaxis_name] = x_axis
     layout[yaxis_name] = y_axis
 

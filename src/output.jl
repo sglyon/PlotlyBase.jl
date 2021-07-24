@@ -12,7 +12,7 @@ const _MATHJAX_CONFIG = """
 if (window.MathJax) {MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}
 </script>"""
 
-const PLOTLYJS_VERSION = "1.58.4"
+const PLOTLYJS_VERSION = "2.3.0"
 
 const CDN_URL = "https://cdn.plot.ly/plotly-$(PLOTLYJS_VERSION).min.js"
 
@@ -84,14 +84,14 @@ function to_html(
         then_addframes = """.then(function() {
             Plotly.addFrames('$(p.divid)', $(JSON.json(jframes)));
         })"""
-        
+
         if autoplay
             animation_opts_arg = ""
             if !ismissing(animation_opts)
                 animation_opts_arg = ", $(JSON.json(animation_opts))"
             end
 
-            then_animate = """.then(function() { 
+            then_animate = """.then(function() {
                 Plotly.animate('$(p.divid)', null$(animation_opts_arg));
             })"""
         end
