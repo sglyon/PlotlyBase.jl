@@ -338,12 +338,12 @@ function Plot(
         yname = gr[1].layout_keys[2]
         if :y in keys(label_map)
             setifempty!(out.layout, Symbol("$(yname)_title_text"), label_map[:y])
-        end
 
-        if haskey(orders, kwargs[:y])
-            # order the yticks
-            setifempty!(out.layout, Symbol("$(yname)_categoryorder"), "array")
-            setifempty!(out.layout, Symbol("$(yname)_categoryarray"), orders[kwargs[:y]])
+            if haskey(orders, kwargs[:y])
+                # order the yticks
+                setifempty!(out.layout, Symbol("$(yname)_categoryorder"), "array")
+                setifempty!(out.layout, Symbol("$(yname)_categoryarray"), orders[kwargs[:y]])
+            end
         end
     end
     for gr in out.layout.subplots.grid_ref[end, :]
