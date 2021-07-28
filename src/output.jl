@@ -120,6 +120,9 @@ function to_html(
             load_plotlyjs = _requirejs_config()
             require_start = "require([\"plotly\"], function(Plotly) {"
             require_end = "});"
+        elseif including == "require-loaded"
+            require_start = "require([\"plotly\"], function(Plotly) {"
+            require_end = "});"
         elseif including == "directory"
             load_plotlyjs = """
             $(_WINDOW_PLOTLY_CONFIG)

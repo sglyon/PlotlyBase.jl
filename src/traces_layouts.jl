@@ -15,7 +15,9 @@ function GenericTrace(kind::Union{AbstractString,Symbol},
 end
 
 function _layout_defaults()
-    Dict{Symbol,Any}(:margin => Dict(:l => 50, :r => 50, :t => 60, :b => 50))
+    Dict{Symbol,Any}(
+        :margin => Dict(:l => 50, :r => 50, :t => 60, :b => 50),
+    )
 end
 
 mutable struct Layout{T <: AbstractDict{Symbol,Any}} <: AbstractLayout
