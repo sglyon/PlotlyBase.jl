@@ -2,5 +2,5 @@
 git-tree-sha1 = "898c1a08ec8682f03f403275a1b57ec71d4d17e0"
 
     [[plotly-base-artifacts.download]]
-    sha256 = "a7cda23e613751ab72776ccb4fd64d3d2bf1a101fcd6978daefc077b3884d8a8"
+    sha256 = "49e4e15b2ad65d1c86cd7b5e3a17745ca95cc27716c5b2ec99b9713fb4e7cbf5"
     url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/plotly-base-artifacts-2.3.0/plotly-base-artifacts-2.3.0.tar.gz"
