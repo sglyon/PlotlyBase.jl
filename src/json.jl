@@ -2,7 +2,7 @@
 # Custom JSON output for our types #
 # -------------------------------- #
 JSON.lower(a::HasFields) = a.fields
-
+JSON.lower(c::Cycler) = c.vals
 
 _maybe_set_attr!(hf::HasFields, k::Symbol, v::Any) =
     get(hf, k, nothing) == nothing && setindex!(hf, v, k)
@@ -34,7 +34,17 @@ function _maybe_set_attr!(p::Plot, k::Symbol, v::Cycler)
 end
 
 function JSON.lower(p::Plot)
-    Dict(:data => p.data, :layout => p.layout, :frames => p.frames, :config => JSON.lower(p.config))
+    out = Dict(
+        :data => p.data,
+        :layout => p.layout,
+        :frames => p.frames,
+        :config => JSON.lower(p.config)
+    )
+
+    if templates.default !== "none" && _isempty(out[:layout].template)
+        out[:layout].template = templates[templates.default]
+    end
+    out
 end
 
 # Let string interpolation stringify to JSON format

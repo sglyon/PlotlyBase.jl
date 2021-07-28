@@ -16,6 +16,7 @@ using DelimitedFiles: readdlm
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
 export @L_mstr, @L_str
+using Pkg.Artifacts
 
 # export some names from JSON
 export json
@@ -31,6 +32,8 @@ abstract type AbstractPlotlyAttribute end
 mutable struct PlotlyAttribute{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
     fields::T
 end
+
+const _ATTR = PlotlyAttribute{Dict{Symbol,Any}}
 
 struct Cycler
     vals::Vector
@@ -52,7 +55,7 @@ function Base.getindex(c::Cycler, ixs::AbstractVector{<:Integer})
 end
 
 Base.iterate(c::Cycler, s::Int=1) = c[s], s + 1
-Base.IteratorSize(::Cycler) = IsInfinite()
+Base.IteratorSize(::Cycler) = Base.IsInfinite()
 
 # include these here because they are used below
 include("plot_config.jl")
@@ -79,6 +82,7 @@ include("api.jl")
 include("convenience_api.jl")
 include("recession_bands.jl")
 include("output.jl")
+include("templates.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;config::PlotConfig=PlotConfig())
@@ -122,6 +126,9 @@ export
     # helper methods
     plot, fork, vline, hline, attr, frame, add_trace!,
 
+    # templates
+    templates, Template,
+
     # new trace types
     stem,
 
@@ -130,6 +137,7 @@ export
 
     # other
     savejson
+
 
 function __init__()
     @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
