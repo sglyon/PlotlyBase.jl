@@ -4,6 +4,8 @@
     layout::PlotlyAttribute = attr()
 end
 
+==(t1::Template, t2::Template)=  t1.data == t2.data && t1.layout == t2.layout
+
 # to allow Template(data = attr(...))
 function Base.convert(T::Type{Dict{Symbol,Vector{_ATTR}}}, x::PlotlyAttribute)
     out = T()
@@ -93,7 +95,7 @@ function Base.setproperty!(tc::_TemplatesConfig, ::Val{k}, x) where k
     if hasfield(_TemplatesConfig, k)
         return setfield!(tc, k, x)
     end
-    return setindex!(tc, k, x)
+    return setindex!(tc, x, k)
 end
 function Base.setproperty!(tc::_TemplatesConfig, ::Val{:default}, x::String)
     # TODO: validation here
@@ -113,7 +115,7 @@ Base.getproperty(tc::_TemplatesConfig, ::Val{:available}) = collect(keys(tc.temp
 Base.propertynames(tc::_TemplatesConfig) = Symbol[fieldnames(_TemplatesConfig)...,  :available]
 
 # setindex! and getindex, and keys work through the `.templates` dict
-function Base.setindex!(tc::_TemplatesConfig, k::Union{Symbol,String}, val::Template)
+function Base.setindex!(tc::_TemplatesConfig, val::Template, k::Union{Symbol,String})
     setindex!(tc.templates, val, Symbol(k))
 end
 function Base.getindex(tc::_TemplatesConfig, k::Symbol)
@@ -123,7 +125,7 @@ function Base.getindex(tc::_TemplatesConfig, k::Symbol)
     return _load_template(String(k))
 end
 function Base.getindex(tc::_TemplatesConfig, k::String)
-    @show parts = strip.(split(k, "+"))
+    parts = strip.(split(k, "+"))
     reduce(merge, getindex.(Ref(tc), Symbol.(parts)))
 end
 
