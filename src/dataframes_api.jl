@@ -95,7 +95,10 @@ lexographically sort obsvals to match orders, given keys into orders
 function _partial_val_sortperm(
         obsvals::Vector{<:Vector}, orders::Dict{Symbol}, order_keys::Vector{Symbol}
     )
-    if length(obsvals[1]) !== length(order_keys)
+    if length(obsvals) == 0 && length(order_keys) > 0
+        error("obsvals is empty, but order_keys is not")
+    end
+    if length(obsvals) > 0 && (length(obsvals[1]) !== length(order_keys))
         error("obsvals[i] and order_keys must be same length")
     end
 
@@ -209,6 +212,9 @@ function Plot(
     for ax in [:x, :y, :z]
         if ax in kw_keys
             ax_val = kwargs[ax]
+            if !(ax_val isa Symbol)
+                continue
+            end
             # use `get` below because if something was passed into labels it
             # will already  be set in `label_map` and we should use the Given
             # label. Otherwise use hte value directly.
