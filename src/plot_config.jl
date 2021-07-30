@@ -22,28 +22,28 @@ Configuration options to be sent to the frontend to control aspects of how the p
 - `doubleClickDelay`: Sets the delay for registering a double-click in ms. This is the time interval (in ms) between first mousedown and 2nd mouseup to constitute a double-click. This setting propagates to all on-subplot double clicks (except for geo and mapbox) and on-legend double clicks.
 """
 @with_kw mutable struct PlotConfig
-    scrollZoom::Union{Missing,Bool} = true
-    editable::Union{Missing,Bool} = false
-    staticPlot::Union{Missing,Bool} = false
-    toImageButtonOptions::Union{Missing,Dict} = missing
-    displayModeBar::Union{Missing,Bool} = missing
-    modeBarButtonsToRemove::Union{Missing,Array} = missing
-    modeBarButtonsToAdd::Union{Missing,Array} = missing
-    showLink::Union{Missing,Bool} = false
-    plotlyServerURL::Union{Missing,String} = missing
-    linkText::Union{Missing,String} = missing
-    showEditInChartStudio::Union{Missing,Bool} = missing
-    locale::Union{Missing,String} = missing
-    displaylogo::Union{Missing,Bool} = missing
-    responsive::Union{Missing,Bool} = true
-    doubleClickDelay::Union{Missing,Int} = missing
+    scrollZoom::Union{Nothing,Bool} = true
+    editable::Union{Nothing,Bool} = false
+    staticPlot::Union{Nothing,Bool} = false
+    toImageButtonOptions::Union{Nothing,Dict} = nothing
+    displayModeBar::Union{Nothing,Bool} = nothing
+    modeBarButtonsToRemove::Union{Nothing,Array} = nothing
+    modeBarButtonsToAdd::Union{Nothing,Array} = nothing
+    showLink::Union{Nothing,Bool} = false
+    plotlyServerURL::Union{Nothing,String} = nothing
+    linkText::Union{Nothing,String} = nothing
+    showEditInChartStudio::Union{Nothing,Bool} = nothing
+    locale::Union{Nothing,String} = nothing
+    displaylogo::Union{Nothing,Bool} = nothing
+    responsive::Union{Nothing,Bool} = true
+    doubleClickDelay::Union{Nothing,Int} = nothing
 end
 
 function JSON.lower(pc::PlotConfig)
     out = Dict{Symbol,Any}()
     for fn in fieldnames(PlotConfig)
         field = getfield(pc, fn)
-        if !ismissing(field)
+        if !isnothing(field)
             out[fn] = field
         end
     end
@@ -53,7 +53,7 @@ end
 function Base.get(pc::PlotConfig, field::Symbol, default::Any)
     if hasfield(pc, field)
         val = getfield(pc, field)
-        if !ismissing(val)
+        if !isnothing(val)
             return val
         end
     end
