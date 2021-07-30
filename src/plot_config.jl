@@ -12,6 +12,7 @@ Configuration options to be sent to the frontend to control aspects of how the p
 - `displayModeBar`: Determines the mode bar display mode. If *true*, the mode bar is always visible. If *false*, the mode bar is always hidden. If *hover*, the mode bar is visible while the mouse cursor is on the graph container.
 - `modeBarButtonsToRemove`: Remove mode bar buttons by name
 - `modeBarButtonsToAdd`: Add mode bar button using config objects. To enable predefined modebar buttons e.g. shape drawing, hover and spikelines, simply provide their string name(s). This could include: *v1hovermode*, *hoverclosest*, *hovercompare*, *togglehover*, *togglespikelines*, *drawline*, *drawopenpath*, *drawclosedpath*, *drawcircle*, *drawrect* and *eraseshape*. Please note that these predefined buttons will only be shown if they are compatible with all trace types used in a graph.
+- `modeBarButtons`: Define fully custom mode bar buttons as nested array where the outer arrays represents button groups, and the inner arrays have buttons config objects or names of default buttons.
 - `showLink`: Determines whether a link to Chart Studio Cloud is displayed at the bottom right corner of resulting graphs. Use with `sendData` and `linkText`.
 - `plotlyServerURL`: When set it determines base URL for the 'Edit in Chart Studio' `showEditInChartStudio`/`showSendToCloud` mode bar button and the showLink/sendData on-graph link. To enable sending your data to Chart Studio Cloud, you need to set both `plotlyServerURL` to 'https://chart-studio.plotly.com' and also set `showSendToCloud` to true.
 - `linkText`: Sets the text appearing in the `showLink` link.
@@ -29,6 +30,7 @@ Configuration options to be sent to the frontend to control aspects of how the p
     displayModeBar::Union{Nothing,Bool} = nothing
     modeBarButtonsToRemove::Union{Nothing,Array} = nothing
     modeBarButtonsToAdd::Union{Nothing,Array} = nothing
+    modeBarButtons::Union{Nothing,Array} = nothing
     showLink::Union{Nothing,Bool} = false
     plotlyServerURL::Union{Nothing,String} = nothing
     linkText::Union{Nothing,String} = nothing
