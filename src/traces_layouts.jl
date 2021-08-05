@@ -11,6 +11,11 @@ function GenericTrace(kind::Union{AbstractString,Symbol},
     fields[:type] = kind
     gt = GenericTrace(fields)
     foreach(x -> setindex!(gt, x[2], x[1]), kwargs)
+    if Symbol(kind) in [:contour, :contourcarpet, :heatmap, :heatmapgl]
+        if !haskey(gt, :transpose)
+            gt.transpose = true
+        end
+    end
     gt
 end
 
