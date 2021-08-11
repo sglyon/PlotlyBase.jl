@@ -49,16 +49,22 @@ gen_layout(nr::Int, nc::Int, subplot_titles::Bool=false) = gen_layout(tuple(fill
 
 function handle_titles!(big_layout, sub_layout, ix::Int)
     # don't worry about it if the sub_layout doesn't have a title
-    if !haskey(sub_layout.fields, "title") && !haskey(sub_layout.fields, :title)
+    if _isempty(sub_layout.title)
         return big_layout
     end
 
-    # check for symbol or string
-    nm = haskey(sub_layout.fields, "title") ? "title" : :title
+    # check for title or title text
+    text = sub_layout.title
+    if text isa Dict
+        text = get(text, :text, missing)
+        if ismissing(text)
+            return big_layout
+        end
+    end
 
     ann = Dict{Any,Any}(:font => Dict{Any,Any}(:size => 16),
                         :showarrow => false,
-                        :text => pop!(sub_layout.fields, nm),
+                        :text => text,
                         :x => mean(big_layout["xaxis$(ix).domain"]),
                         :xanchor => "center",
                         :xref => "paper",
