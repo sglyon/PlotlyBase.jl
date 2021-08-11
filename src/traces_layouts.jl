@@ -273,7 +273,10 @@ function Base.setindex!(gt::HasFields, val, container, key::Symbol)
     # check if single key has underscores, if so split as str and call above
     # unless it is one of the special attribute names with an underscore
     if occursin("_", string(key))
-
+        # check for title
+        if key in [:xaxis_title, :yaxis_title, :zaxis_title, :title] && (typeof(val) in [String, Symbol])
+            key = Symbol(key, :_text)
+        end
         if !in(key, _UNDERSCORE_ATTRS)
             return setindex!(gt, val, container, string(key))
         end

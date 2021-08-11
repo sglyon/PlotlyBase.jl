@@ -2,9 +2,10 @@ module PlotlyBaseTest
 
 using Test
 using Dates
+using DataFrames
 
 @static if VERSION >= v"0.7.0-alpha"
-    using DelimitedFiles: readdlm
+    using DelimitedFiles:readdlm
 end
 
 
@@ -26,9 +27,9 @@ macro includetests(testarg...)
         rootfile = @__FILE__
         if length(tests) == 0
             tests = readdir(dirname(rootfile))
-            tests = filter(f->endswith(f, ".jl") && f!= basename(rootfile), tests)
+            tests = filter(f -> endswith(f, ".jl") && f != basename(rootfile), tests)
         else
-            tests = map(f->string(f, ".jl"), tests)
+            tests = map(f -> string(f, ".jl"), tests)
         end
         println();
         for test in tests
