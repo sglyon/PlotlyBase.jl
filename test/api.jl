@@ -23,14 +23,14 @@ end
         t1, t2, t3, l, p = fresh_data()
         # test dict version
         o = copy(t1)
-        PlotlyBase._update_fields(o, 1, Dict{Symbol,Any}(:foo=>"Bar"))
+        PlotlyBase._update_fields(o, 1, Dict{Symbol,Any}(:foo => "Bar"))
         @test o["foo"] == "Bar"
         # kwarg version
         PlotlyBase._update_fields(o, 1; foo="Foo")
         @test o["foo"] == "Foo"
 
         # dict + kwarg version. Make sure dict gets through w/out replacing _
-        PlotlyBase._update_fields(o, 1, Dict{Symbol,Any}(:fuzzy_wuzzy=>"Bear");
+        PlotlyBase._update_fields(o, 1, Dict{Symbol,Any}(:fuzzy_wuzzy => "Bear");
                                 fuzzy_wuzzy="?")
         @test o.fields[:fuzzy_wuzzy] == "Bear"
         @test isa(o.fields[:fuzzy], Dict)
@@ -40,14 +40,14 @@ end
     @testset "test relayout!" begin
         t1, t2, t3, l, p = fresh_data()
         # test on plot object
-        relayout!(p, Dict{Symbol,Any}(:title=>"Fuzzy"); xaxis_title="wuzzy")
+        relayout!(p, Dict{Symbol,Any}(:title => "Fuzzy"); xaxis_title="wuzzy")
         @test p.layout["title"] == "Fuzzy"
-        @test p.layout["xaxis.title"] == "wuzzy"
+        @test p.layout["xaxis.title.text"] == "wuzzy"
 
         # test on layout object
-        relayout!(l, Dict{Symbol,Any}(:title=>"Fuzzy"); xaxis_title="wuzzy")
+        relayout!(l, Dict{Symbol,Any}(:title => "Fuzzy"); xaxis_title="wuzzy")
         @test l["title"] == "Fuzzy"
-        @test l["xaxis.title"] == "wuzzy"
+        @test l["xaxis.title.text"] == "wuzzy"
     end
 
     @testset "test react!" begin
@@ -71,24 +71,24 @@ end
     @testset "test restyle!" begin
         t1, t2, t3, l, p = fresh_data()
         # test on trace object
-        restyle!(t1, 1, Dict{Symbol,Any}(:opacity=>0.4); marker_color="red")
+        restyle!(t1, 1, Dict{Symbol,Any}(:opacity => 0.4); marker_color="red")
         @test t1["opacity"] == 0.4
         @test t1["marker.color"] == "red"
 
         # test for single trace in plot
-        restyle!(p, 2, Dict{Symbol,Any}(:opacity=>0.4); marker_color="red")
+        restyle!(p, 2, Dict{Symbol,Any}(:opacity => 0.4); marker_color="red")
         @test p.data[2]["opacity"] == 0.4
         @test p.data[2]["marker.color"] == "red"
 
         # test for multiple trace in plot
-        restyle!(p, [1, 3], Dict{Symbol,Any}(:opacity=>0.9); marker_color="blue")
+        restyle!(p, [1, 3], Dict{Symbol,Any}(:opacity => 0.9); marker_color="blue")
         @test p.data[1]["opacity"] == 0.9
         @test p.data[1]["marker.color"] == "blue"
         @test p.data[3]["opacity"] == 0.9
         @test p.data[3]["marker.color"] == "blue"
 
         # test for all traces in plot
-        restyle!(p, 1:3, Dict{Symbol,Any}(:opacity=>0.42); marker_color="white")
+        restyle!(p, 1:3, Dict{Symbol,Any}(:opacity => 0.42); marker_color="white")
         for i in 1:3
             @test p.data[i]["opacity"] == 0.42
             @test p.data[i]["marker.color"] == "white"
