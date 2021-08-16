@@ -20,7 +20,7 @@ const _TRACE_TYPES = [
     :area, :bar, :barpolar, :box, :candlestick, :carpet, :choropleth,
     :choroplethmapbox, :cone, :contour, :contourcarpet, :densitymapbox,
     :funnel, :funnelarea, :heatmap, :heatmapgl, :histogram, :histogram2d,
-    :histogram2dcontour, :image, :indicator, :isosurface, :mesh3d, :ohlc,
+    :histogram2dcontour, :icicle, :image, :indicator, :isosurface, :mesh3d, :ohlc,
     :parcats, :parcoords, :pie, :pointcloud, :sankey, :scatter, :scatter3d,
     :scattercarpet, :scattergeo, :scattergl, :scattermapbox, :scatterpolar,
     :scatterpolargl, :scatterternary, :splom, :streamtube, :sunburst,
