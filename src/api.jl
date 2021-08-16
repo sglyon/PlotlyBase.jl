@@ -608,3 +608,66 @@ for (k1, k2) in _layout_vector_updaters
     @eval export $(k1)
 end
 
+const ROW_COL_TYPE = Union{String,Int,Vector{Int},Colon}
+
+_check_row_col_arg(_l::Layout, x::String, name, dim::Int=1) = x == "all" || @error "Unknown specifier $x for $name, must be an integer or `\"all\"`"
+_check_row_col_arg(l::Layout, x::Int, name, dim::Int=1) = x <= size(l.subplots.grid_ref, dim) || error("Row index $name is too large for layout")
+_check_row_col_arg(l::Layout, x::Vector{Int}, name, dim::Int=1) = foreach(_val -> _check_row_col_arg(l, _val, name, dim), x)
+_check_row_col_arg(_l::Layout, x::Colon, name, dim::Int=1) = nothing
+
+function _add_many_shapes!(
+        l::Layout, base_shape::Shape, direction::Char, row::ROW_COL_TYPE, col::ROW_COL_TYPE
+    )
+    _check_row_col_arg(l, row, "row", 1)
+    _check_row_col_arg(l, col, "col", 2)
+
+    if direction != 'h' && direction != 'v'
+        error("direction must be one of `'h'` or `'v'`")
+    end
+
+    shapes = get(l, :shapes, [])
+    gridref_row_ix = row isa String ? Colon() : row
+    gridref_col_ix = col isa String ? Colon() : col
+    for refs in l.subplots.grid_ref[gridref_row_ix, gridref_col_ix]
+        # refs is always a vector...
+        ref = refs[1]
+
+        # find xref and yref
+        xax, yax = string.(ref.layout_keys)
+        xid = string("x", xax[6:end])
+        yid = string("y", yax[6:end])
+
+        new_shape = deepcopy(base_shape)
+        if direction == 'h'
+            new_shape.xref = "$xid domain"
+            new_shape.yref = yid
+        else
+            new_shape.xref = xid
+            new_shape.yref = "$yid domain"
+        end
+        push!(shapes, new_shape)
+    end
+    l.shapes = shapes
+end
+
+_add_many_shapes!(p::Plot, args...) = _add_many_shapes!(p.layout, args...)
+
+function add_hrect!(l::Union{Plot,Layout}, y0, y1; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
+    base_shape = rect(0, 1, y0, y1; kw...)
+    _add_many_shapes!(l, base_shape, 'h', row, col)
+end
+
+function add_hline!(l::Union{Plot,Layout}, y; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
+    base_shape = hline(y; kw...)
+    _add_many_shapes!(l, base_shape, 'h', row, col)
+end
+
+function add_vrect!(l::Union{Plot,Layout}, x0, x1; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
+    base_shape = rect(x0, x1, 0, 1; kw...)
+    _add_many_shapes!(l, base_shape, 'v', row, col)
+end
+
+function add_vline!(l::Union{Plot,Layout}, x; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
+    base_shape = hline(x; kw...)
+    _add_many_shapes!(l, base_shape, 'v', row, col)
+end

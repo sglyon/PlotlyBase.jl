@@ -161,7 +161,7 @@ end
     grid_ref::GridRef = let
         gr = GridRef(undef, (rows, cols))
         if rows == 1 && cols == 1
-            gr[1, 1] = [SubplotRef(subplot_kind="xy", layout_keys=[:xaxis, :yaxis], trace_kwargs=attr())]
+            gr[1, 1] = [SubplotRef(subplot_kind="xy", layout_keys=[:xaxis, :yaxis], trace_kwargs=attr(xaxis="x", yaxis="y"))]
         end
         gr
     end
