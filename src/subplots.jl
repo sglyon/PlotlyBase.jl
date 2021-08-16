@@ -29,10 +29,8 @@ function gen_layout(rows::Tuple{Vararg{Int}}, subplot_titles::Bool=false)
         x = 0.0 # reset x as we start a new row
         for col in 1:nc
 
-            out["xaxis$subplot"] = Dict{Any,Any}(:domain => [x, x + w],
-                                                 :anchor => "y$subplot")
-            out["yaxis$subplot"] = Dict{Any,Any}(:domain => [y - h, y],
-                                                 :anchor => "x$subplot")
+            out["xaxis$subplot"] = attr(domain=[x, x + w], anchor="y$subplot")
+            out["yaxis$subplot"] = attr(domain=[y - h, y], anchor="x$subplot")
 
             x += nc == 1 ? 0.0 : w + dx
             subplot += 1
@@ -62,16 +60,18 @@ function handle_titles!(big_layout, sub_layout, ix::Int)
         end
     end
 
-    ann = Dict{Any,Any}(:font => Dict{Any,Any}(:size => 16),
-                        :showarrow => false,
-                        :text => text,
-                        :x => mean(big_layout["xaxis$(ix).domain"]),
-                        :xanchor => "center",
-                        :xref => "paper",
-                        :y => big_layout["yaxis$(ix).domain"][2],
-                        :yanchor => "bottom",
-                        :yref => "paper")
-    anns = get(big_layout.fields, :annotations, Dict{Any,Any}[])
+    ann = attr(
+        font_size=16,
+        showarrow=false,
+        text=text,
+        x=mean(big_layout["xaxis$(ix).domain"]),
+        xanchor="center",
+        xref="paper",
+        y=big_layout["yaxis$(ix).domain"][2],
+        yanchor="bottom",
+        yref="paper"
+    )
+    anns = get(big_layout.fields, :annotations, [])
     push!(anns, ann)
     big_layout[:annotations] = anns
     big_layout
@@ -216,10 +216,36 @@ function _init_subplot_domain!(domain::NamedTuple{(:x, :y)})
     )]
 end
 
+function get_subplotkind_from_trace_type(k::Symbol)
+    schema = get_plotschema()
+
+    trace_attrs = schema.traces[k][:attributes]
+    trace_attr_names = keys(trace_attrs)
+    if :xaxis in trace_attr_names && :yaxis in trace_attr_names
+        return "xy"
+    elseif :domain in trace_attr_names
+        return "domain"
+    elseif :geo in trace_attr_names
+        return "geo"
+    elseif :scene in trace_attr_names
+        return "scene"
+    elseif k === :splom
+        return "xy"
+    elseif :subplot in trace_attr_names
+        return trace_attrs[:subplot][:dflt]
+    else
+        @error "Unknown subplot type for trace $k. Please open issue"
+    end
+end
+
 function _init_subplot!(
         layout::Layout, subplot_kind::String, secondary_y::Bool,
         domain::NamedTuple{(:x, :y)}, max_subplot_ids::Dict
     )
+    sksymbol = Symbol(subplot_kind)
+    if sksymbol in _TRACE_TYPES
+        subplot_kind = get_subplotkind_from_trace_type(sksymbol)
+    end
     if subplot_kind == "xy"
         return _init_subplot_xy!(layout, secondary_y, domain, max_subplot_ids)
     elseif subplot_kind in _single_subplot_types

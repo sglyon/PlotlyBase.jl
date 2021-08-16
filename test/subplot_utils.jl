@@ -44,4 +44,8 @@
         @test have[:yaxis2] == attr(anchor="x2", domain=(0.0, 0.425)).fields
     end
 
+    @testset "can get subplot kind for trace type" begin
+        @test PlotlyBase.get_subplotkind_from_trace_type.(PlotlyBase._TRACE_TYPES) isa Vector{String}
+    end
+
 end
