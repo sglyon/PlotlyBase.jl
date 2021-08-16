@@ -34,7 +34,7 @@ end
     df = stack(DataFrame(x=1:10, one=1, two=2, three=3, four=4, five=5, six=6, seven=7), Not(:x))
     # _43 means 4 subplots in row 1 and 3 in row 2
     p_43 = Plot(df, x=:x, y=:value, facet_row=:variable, facet_row_wrap=2)
-    @test size(p_4_3.layout.subplots.grid_ref) == (2, 4)
+    @test size(p_43.layout.subplots.grid_ref) == (2, 4)
 
     p_2221 = Plot(df, x=:x, y=:value, facet_col=:variable, facet_col_wrap=2)
     @test size(p_2221.layout.subplots.grid_ref) == (4, 2)
