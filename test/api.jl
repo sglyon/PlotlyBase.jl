@@ -223,4 +223,33 @@ end
         @test p.data[2]["y"] == t1["y"]
         @test p.data[3]["y"] == t2["y"]
     end
+
+
+    @testset "test update_XXX! layout props" begin
+        t1, t2, t3, l, p = fresh_data()
+        p2 = [p p]
+        @test PlotlyBase._isempty(p2.layout.xaxis2_showticklabels)
+        @test PlotlyBase._isempty(p2.layout.xaxis_showticklabels)
+        update_xaxes!(p2, showticklabels=true)
+
+        @test p2.layout.xaxis2_showticklabels
+        @test p2.layout.xaxis_showticklabels
+
+        p3 = [p; p]
+        @test PlotlyBase._isempty(p3.layout.yaxis2_showticklabels)
+        @test PlotlyBase._isempty(p3.layout.yaxis_showticklabels)
+        update_yaxes!(p3, showticklabels=true)
+
+        @test p3.layout.yaxis2_showticklabels
+        @test p3.layout.yaxis_showticklabels
+
+
+        for ann in p2.layout.annotations
+            @test ann[:font][:size] != 1
+        end
+        update_annotations!(p2, font_size=1)
+        for ann in p2.layout.annotations
+            @test ann[:font][:size] == 1
+        end
+    end
 end

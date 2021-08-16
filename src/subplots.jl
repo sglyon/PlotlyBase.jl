@@ -29,10 +29,8 @@ function gen_layout(rows::Tuple{Vararg{Int}}, subplot_titles::Bool=false)
         x = 0.0 # reset x as we start a new row
         for col in 1:nc
 
-            out["xaxis$subplot"] = Dict{Any,Any}(:domain => [x, x + w],
-                                                 :anchor => "y$subplot")
-            out["yaxis$subplot"] = Dict{Any,Any}(:domain => [y - h, y],
-                                                 :anchor => "x$subplot")
+            out["xaxis$subplot"] = attr(domain=[x, x + w], anchor="y$subplot")
+            out["yaxis$subplot"] = attr(domain=[y - h, y], anchor="x$subplot")
 
             x += nc == 1 ? 0.0 : w + dx
             subplot += 1
@@ -62,16 +60,18 @@ function handle_titles!(big_layout, sub_layout, ix::Int)
         end
     end
 
-    ann = Dict{Any,Any}(:font => Dict{Any,Any}(:size => 16),
-                        :showarrow => false,
-                        :text => text,
-                        :x => mean(big_layout["xaxis$(ix).domain"]),
-                        :xanchor => "center",
-                        :xref => "paper",
-                        :y => big_layout["yaxis$(ix).domain"][2],
-                        :yanchor => "bottom",
-                        :yref => "paper")
-    anns = get(big_layout.fields, :annotations, Dict{Any,Any}[])
+    ann = attr(
+        font_size=16,
+        showarrow=false,
+        text=text,
+        x=mean(big_layout["xaxis$(ix).domain"]),
+        xanchor="center",
+        xref="paper",
+        y=big_layout["yaxis$(ix).domain"][2],
+        yanchor="bottom",
+        yref="paper"
+    )
+    anns = get(big_layout.fields, :annotations, [])
     push!(anns, ann)
     big_layout[:annotations] = anns
     big_layout

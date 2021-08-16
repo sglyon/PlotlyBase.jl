@@ -4,3 +4,4 @@
 Manifest.toml
 .#*
 *.gz
+src/scratch.jl

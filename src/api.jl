@@ -574,3 +574,37 @@ function _get_default_seq(l::Layout, attribute::Symbol)
     end
     error("Don't know how to get defaults for $(attribute)")
 end
+
+function _update_all_layout_type!(l::Layout, layout_type::Symbol, with::PlotlyAttribute)
+    l[layout_type] = with
+
+    for (k, v) in pairs(l)
+        if startswith(string(k), string(layout_type))
+            l[k] = with
+        end
+    end
+    l
+end
+
+
+const _layout_obj_updaters = [:update_xaxes! => :xaxis, :update_yaxes! => :yaxis, :update_geos! => :geo, :update_mapboxes! => :mapbox, :update_polars! => :polar, :update_scenes! => :scene, :update_ternaries! => :ternary]
+
+for (k1, k2) in _layout_obj_updaters
+    @eval $(k1)(l::Layout, with::PlotlyAttribute=attr(); kwargs...) = _update_all_layout_type!(l, $(Meta.quot(k2)), merge(with, attr(;kwargs...)))
+    @eval $(k1)(p::Plot, with::PlotlyAttribute=attr(); kwargs...) = $(k1)(p.layout, merge(with, attr(;kwargs...)))
+    @eval export $k1
+end
+
+const _layout_vector_updaters = [:update_annotations! => :(layout.annotations), :update_shapes! => :(layout.shapes)]
+
+for (k1, k2) in _layout_vector_updaters
+    @eval function $(k1)(layout::Layout, with::PlotlyAttribute; kwargs...)
+        final_with = merge(with, attr(;kwargs...))
+        for val in $(k2)
+            merge!(val, final_with)
+        end
+    end
+    @eval $(k1)(p::Plot, with::PlotlyAttribute=attr(); kwargs...) = $(k1)(p.layout, merge(with, attr(;kwargs...)))
+    @eval export $(k1)
+end
+
