@@ -216,10 +216,36 @@ function _init_subplot_domain!(domain::NamedTuple{(:x, :y)})
     )]
 end
 
+function get_subplotkind_from_trace_type(k::Symbol)
+    schema = get_plotschema()
+
+    trace_attrs = schema.traces[k][:attributes]
+    trace_attr_names = keys(trace_attrs)
+    if :xaxis in trace_attr_names && :yaxis in trace_attr_names
+        return "xy"
+    elseif :domain in trace_attr_names
+        return "domain"
+    elseif :geo in trace_attr_names
+        return "geo"
+    elseif :scene in trace_attr_names
+        return "scene"
+    elseif k === :splom
+        return "xy"
+    elseif :subplot in trace_attr_names
+        return trace_attrs[:subplot][:dflt]
+    else
+        @error "Unknown subplot type for trace $k. Please open issue"
+    end
+end
+
 function _init_subplot!(
         layout::Layout, subplot_kind::String, secondary_y::Bool,
         domain::NamedTuple{(:x, :y)}, max_subplot_ids::Dict
     )
+    sksymbol = Symbol(subplot_kind)
+    if sksymbol in _TRACE_TYPES
+        subplot_kind = get_subplotkind_from_trace_type(sksymbol)
+    end
     if subplot_kind == "xy"
         return _init_subplot_xy!(layout, secondary_y, domain, max_subplot_ids)
     elseif subplot_kind in _single_subplot_types
