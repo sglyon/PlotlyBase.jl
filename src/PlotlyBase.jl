@@ -62,6 +62,16 @@ include("plot_config.jl")
 include("subplot_utils.jl")
 include("traces_layouts.jl")
 
+const PLOTSCHEMA = attr();
+
+function get_plotschema()
+    if _isempty(PLOTSCHEMA)
+        out = JSON.parsefile(joinpath(artifact"plotly-base-artifacts", "plot-schema.json"))
+        PLOTSCHEMA.fields = _symbol_dict(out)
+    end
+    return PLOTSCHEMA
+end
+
 # core plot object
 mutable struct Plot{TT<:AbstractVector{<:AbstractTrace},TL<:AbstractLayout,TF<:AbstractVector{<:PlotlyFrame}}
     data::TT
