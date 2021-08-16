@@ -115,6 +115,26 @@ function _partial_val_sortperm(
     return sortperm(to_sort)
 end
 
+@inline function _ind2sub_rowmajor(nr::Int, nc::Int, ix::Int)
+    out = CartesianIndices((nc, nr))[ix].I
+    CartesianIndex(out[2], out[1])
+end
+
+function _faceted_subplot_titles(nr::Int, nc::Int, titles::Vector{String})
+    subplot_titles = _Maybe{String}[missing for _ in 1:nr, _ in 1:nc]
+
+    # we need
+    title_indices = CartesianIndices((nr, nc))
+    for title_ix in 1:length(titles)
+        idx = _ind2sub_rowmajor(nr, nc, title_ix)
+        subplot_titles[idx] = titles[title_ix]
+    end
+
+    # we need to transpose b/c column vs row major...
+    permutedims(subplot_titles, (2, 1))
+end
+
+
 """
 $(SIGNATURES)
 Construct a plot using the columns of `df` if possible. For each keyword
@@ -154,7 +174,9 @@ function Plot(
         category_orders::_Maybe{Union{PlotlyAttribute,<:Dict{Symbol}}}=missing,
         labels::_Maybe{Union{PlotlyAttribute,<: Dict}}=missing,
         facet_row::_Maybe{Symbol}=missing,
+        facet_row_wrap::_Maybe{Int}=missing,
         facet_col::_Maybe{Symbol}=missing,
+        facet_col_wrap::_Maybe{Int}=missing,
         group::_Maybe{Union{Symbol,Vector{Symbol}}}=missing,
         symbol::_Maybe{Symbol}=missing,
         color::_Maybe{Symbol}=missing,
@@ -267,20 +289,55 @@ function Plot(
     Nrows = max(1, length(rows))
     Ncols = max(1, length(cols))
 
+    # handle facets here
+    if !ismissing(facet_row) && !ismissing(facet_col_wrap)
+        @warn "cannot set facet_row and facet_col_wrap -- setting facet_col_wrap to missing"
+        facet_col_wrap = missing
+    end
+
+    if !ismissing(facet_col) && !ismissing(facet_row_wrap)
+        @warn "cannot set facet_col and facet_row_wrap -- setting facet_row_wrap to missing"
+        facet_row_wrap = missing
+    end
+
     out_layout = l
     if Nrows > 1 || Ncols > 1
         subplot_kw = Dict{Symbol,Any}()
         if Ncols > 1
-            subplot_kw[:cols] = Ncols
-            subplot_kw[:column_titles] = map(x -> "$(label_map[facet_col])=$(x)", cols)
-            subplot_kw[:shared_yaxes] = true
+
+            if !ismissing(facet_col_wrap) && Ncols > facet_col_wrap
+                nr = ceil(Int, Ncols / facet_col_wrap)
+                nc = facet_col_wrap
+                subplot_kw[:cols] = nc
+                subplot_kw[:rows] = nr
+                subplot_kw[:subplot_titles] = _faceted_subplot_titles(
+                    nr, nc, map(x -> "$(label_map[facet_col])=$(x)", cols)
+                )
+                subplot_kw[:shared_yaxes] = "all"
+            else
+                subplot_kw[:cols] = Ncols
+                subplot_kw[:column_titles] = map(x -> "$(label_map[facet_col])=$(x)", cols)
+                subplot_kw[:shared_yaxes] = true
+            end
+
             push!(facet_cols, facet_col)
         end
 
         if Nrows > 1
-            subplot_kw[:rows] = Nrows
-            subplot_kw[:row_titles] = map(x -> "$(label_map[facet_row])=$(x)", rows)
-            subplot_kw[:shared_xaxes] = true
+            if !ismissing(facet_row_wrap) && Nrows > facet_row_wrap
+                nr, nc = facet_row_wrap, ceil(Int, Nrows / facet_row_wrap)
+                subplot_kw[:rows] = nr
+                subplot_kw[:cols] = nc
+                subplot_kw[:subplot_titles] = _faceted_subplot_titles(
+                    nr, nc,  map(x -> "$(label_map[facet_row])=$(x)", rows)
+                )
+                subplot_kw[:shared_xaxes] = "all"
+            else
+                subplot_kw[:rows] = Nrows
+                subplot_kw[:row_titles] = map(x -> "$(label_map[facet_row])=$(x)", rows)
+                subplot_kw[:shared_xaxes] = true
+            end
+
             push!(facet_cols, facet_row)
         end
 
@@ -294,6 +351,18 @@ function Plot(
     for dfg in collect(DataFrames.groupby(df, facet_cols))
         row_ix = Nrows == 1 ? 1 : findfirst(isequal(dfg[1, facet_row]), rows)
         col_ix = Ncols == 1 ? 1 : findfirst(isequal(dfg[1, facet_col]), cols)
+
+        # @show row_ix, col_ix, :before, dfg[1, facet_col]
+        if !ismissing(facet_col_wrap) || !ismissing(facet_row_wrap)
+            ## ind2sub
+            # when making facets with wrap, we need to convert from the
+            # non-wrapped row_ix (=1 when facet_col_wrap) and col_ix (potentially
+            # greater than facet_col_wrap) to the wrapped row_ix and col_ix
+            # we do this by converting from a linear index in the faceted + wrapped
+            # dimenmsion only into a cartesian index in both dimensions
+            _facet_ix = ismissing(facet_col_wrap) ? row_ix : col_ix
+            row_ix, col_ix = _ind2sub_rowmajor(size(out.layout.subplots.grid_ref)..., _facet_ix).I
+        end
 
         for sub_dfg in collect(DataFrames.groupby(dfg, groupby_cols))
             extra_kw = attr()
