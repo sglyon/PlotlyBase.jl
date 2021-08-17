@@ -1,6 +1,6 @@
 name = "PlotlyBase"
 uuid = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
-version = "0.8.8"
+version = "0.8.9"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
