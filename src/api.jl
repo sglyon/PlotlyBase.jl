@@ -1,6 +1,12 @@
 # -------------------------- #
 # Standard Julia API methods #
 # -------------------------- #
+const ROW_COL_TYPE = Union{String,Int,Vector{Int},Colon}
+
+_check_row_col_arg(_l::Layout, x::String, name, dim::Int=1) = x == "all" || @error "Unknown specifier $x for $name, must be an integer or `\"all\"`"
+_check_row_col_arg(l::Layout, x::Int, name, dim::Int=1) = x <= size(l.subplots.grid_ref, dim) || error("$name index $x is too large for layout")
+_check_row_col_arg(l::Layout, x::Vector{Int}, name, dim::Int=1) = foreach(_val -> _check_row_col_arg(l, _val, name, dim), x)
+_check_row_col_arg(_l::Layout, x::Colon, name, dim::Int=1) = nothing
 
 prep_kwarg(pair::Union{Pair,Tuple}) =
     (Symbol(replace(string(pair[1]), "_" => ".")), pair[2])
@@ -456,22 +462,7 @@ for f in [:restyle, :relayout, :update, :addtraces, :deletetraces,
     end
 end
 
-function _check_dim(s::Subplots, dim::Int, val::Int, str::String)
-    n = size(s.grid_ref, dim)
-    if val > n
-        error("This plot only knows about $n $str of subplots, can't use $val")
-    end
-end
-
-function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, secondary_y::Bool=false)
-    if row == 1 && col == 1
-        push!(p.data, trace)
-        return p
-    end
-
-    _check_dim(p.layout.subplots, 1, row, "row")
-    _check_dim(p.layout.subplots, 2, col, "col")
-
+function _add_trace!(p::Plot, trace::GenericTrace, row::Int, col::Int, secondary_y::Bool)
     refs = p.layout.subplots.grid_ref[row, col]
     if secondary_y && length(refs) == 1
         msg = "To use secondary_y, you must have created the Subplot with seconary_y=true"
@@ -479,8 +470,40 @@ function add_trace!(p::Plot, trace::GenericTrace; row::Int=1, col::Int=1, second
     end
 
     ref = refs[secondary_y ? 2 : 1]
-    merge!(trace, ref.trace_kwargs)
-    push!(p.data, trace)
+    ref_trace = deepcopy(trace)
+    merge!(ref_trace, ref.trace_kwargs)
+    push!(p.data, ref_trace)
+    p
+end
+
+function _add_trace!(p::Plot, trace::GenericTrace, row::ROW_COL_TYPE, col::ROW_COL_TYPE, secondary_y::Bool)
+    for refs in p.layout.subplots.grid_ref[row, col]
+        if secondary_y && length(refs) == 1
+            msg = "To use secondary_y, you must have created the Subplot with seconary_y=true"
+            error(msg)
+        end
+        ref = refs[secondary_y ? 2 : 1]
+        ref_trace = deepcopy(trace)
+        merge!(ref_trace, ref.trace_kwargs)
+        push!(p.data, ref_trace)
+    end
+    p
+end
+
+
+function add_trace!(p::Plot, trace::GenericTrace; row::ROW_COL_TYPE=1, col::ROW_COL_TYPE=1, secondary_y::Bool=false)
+    if row == 1 && col == 1
+        push!(p.data, trace)
+        return p
+    end
+
+    _check_row_col_arg(p.layout, row, "row", 1)
+    _check_row_col_arg(p.layout, col, "col", 2)
+
+    gridref_row_ix = row isa String ? Colon() : row
+    gridref_col_ix = col isa String ? Colon() : col
+
+    _add_trace!(p, trace, gridref_row_ix, gridref_col_ix, secondary_y)
     p
 end
 
@@ -608,12 +631,7 @@ for (k1, k2) in _layout_vector_updaters
     @eval export $(k1)
 end
 
-const ROW_COL_TYPE = Union{String,Int,Vector{Int},Colon}
 
-_check_row_col_arg(_l::Layout, x::String, name, dim::Int=1) = x == "all" || @error "Unknown specifier $x for $name, must be an integer or `\"all\"`"
-_check_row_col_arg(l::Layout, x::Int, name, dim::Int=1) = x <= size(l.subplots.grid_ref, dim) || error("Row index $name is too large for layout")
-_check_row_col_arg(l::Layout, x::Vector{Int}, name, dim::Int=1) = foreach(_val -> _check_row_col_arg(l, _val, name, dim), x)
-_check_row_col_arg(_l::Layout, x::Colon, name, dim::Int=1) = nothing
 
 function _add_many_shapes!(
         l::Layout, base_shape::Shape, direction::Char, row::ROW_COL_TYPE, col::ROW_COL_TYPE

@@ -252,4 +252,23 @@ end
             @test ann[:font][:size] == 1
         end
     end
+
+    @testset "add_trace!" begin
+        df = stack(DataFrame(x=1:10, one=1, two=2, three=3, four=4, five=5, six=6, seven=7), Not(:x))
+        p = Plot(df, x=:x, y=:value, facet_col=:variable, facet_col_wrap=2)
+        @test length(p.data) == 7
+        @test size(p.layout.subplots.grid_ref) == (4, 2)
+
+        add_trace!(p, scatter(x=1:4, y=(1:4).^2), row="all")  # add to all rows in col 1
+        @test length(p.data) == 11
+
+        add_trace!(p, scatter(x=1:4, y=(1:4).^2), col="all")  # add to all cols in row 1
+        @test length(p.data) == 13
+
+        add_trace!(p, scatter(x=1:4, y=(1:4).^2), col=Colon(), row=3)  # add to all cols in row 3
+        @test length(p.data) == 15
+
+        add_trace!(p, scatter(x=1:4, y=(1:4).^2), row="all", col="all")
+        @test length(p.data) == 23  # adds 8 because we get full 4x2 grid
+    end
 end
