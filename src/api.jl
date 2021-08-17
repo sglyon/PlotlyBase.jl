@@ -671,3 +671,5 @@ function add_vline!(l::Union{Plot,Layout}, x; row::ROW_COL_TYPE="all", col::ROW_
     base_shape = hline(x; kw...)
     _add_many_shapes!(l, base_shape, 'v', row, col)
 end
+
+export add_hrect!, add_hline!, add_vrect!, add_vline!
