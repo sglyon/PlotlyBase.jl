@@ -1,5 +1,3 @@
-using Parameters
-
 """
     PlotConfig(;kwargs...)
 

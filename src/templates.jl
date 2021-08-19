@@ -4,7 +4,7 @@
     layout::PlotlyAttribute = attr()
 end
 
-==(t1::Template, t2::Template)=  t1.data == t2.data && t1.layout == t2.layout
+==(t1::Template, t2::Template) =  t1.data == t2.data && t1.layout == t2.layout
 
 # to allow Template(data = attr(...))
 function Base.convert(T::Type{Dict{Symbol,Vector{_ATTR}}}, x::PlotlyAttribute)
@@ -37,7 +37,7 @@ function Base.merge!(out::Template, t2::Template)
         t1_traces = Cycler(get(out.data, k, [attr()]))
         t2_traces = Cycler(t2.data[k])
         n_out = max(length(t1_traces), length(t2_traces))
-        out.data[k]= [merge(t1_traces[ix], t2_traces[ix]) for ix in 1:n_out]
+        out.data[k] = [merge(t1_traces[ix], t2_traces[ix]) for ix in 1:n_out]
     end
 
     # now update layout
