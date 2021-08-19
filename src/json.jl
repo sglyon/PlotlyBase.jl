@@ -2,7 +2,8 @@
 # Custom JSON output for our types #
 # -------------------------------- #
 _json_lower(x) = JSON.lower(x)
-_json_lower(x::AbstractArray) = _json_lower.(x)
+_json_lower(x::Union{Bool,String,Number}) = x
+_json_lower(x::Union{Tuple,AbstractArray}) = _json_lower.(x)
 _json_lower(d::Dict) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(d))
 _json_lower(a::HasFields) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(a.fields))
 _json_lower(c::Cycler) = c.vals
