@@ -1,8 +1,15 @@
 # -------------------------------- #
 # Custom JSON output for our types #
 # -------------------------------- #
-JSON.lower(a::HasFields) = a.fields
-JSON.lower(c::Cycler) = c.vals
+_json_lower(x) = JSON.lower(x)
+_json_lower(x::AbstractArray) = _json_lower.(x)
+_json_lower(d::Dict) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(d))
+_json_lower(a::HasFields) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(a.fields))
+_json_lower(c::Cycler) = c.vals
+function _json_lower(c::ColorScheme)::Vector{Tuple{Float64,String}}
+    N = length(c.colors)
+    map(ic -> ((ic[1] - 1) / (N - 1), _json_lower(ic[2])), enumerate(c.colors))
+end
 
 _maybe_set_attr!(hf::HasFields, k::Symbol, v::Any) =
     get(hf, k, nothing) == nothing && setindex!(hf, v, k)
@@ -35,14 +42,14 @@ end
 
 function JSON.lower(p::Plot)
     out = Dict(
-        :data => p.data,
-        :layout => p.layout,
-        :frames => p.frames,
-        :config => JSON.lower(p.config)
+        :data => _json_lower(p.data),
+        :layout => _json_lower(p.layout),
+        :frames => _json_lower(p.frames),
+        :config => _json_lower(p.config)
     )
 
-    if templates.default !== "none" && _isempty(out[:layout].template)
-        out[:layout].template = templates[templates.default]
+    if templates.default !== "none" && _isempty(get(out[:layout], :template, Dict()))
+        out[:layout][:template] = _json_lower(templates[templates.default])
     end
     out
 end

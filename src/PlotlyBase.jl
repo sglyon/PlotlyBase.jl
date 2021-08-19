@@ -7,6 +7,8 @@ using Requires
 using UUIDs
 using Dates
 using Logging
+using ColorSchemes
+using Parameters
 
 import Base: ==
 
@@ -93,6 +95,7 @@ include("convenience_api.jl")
 include("recession_bands.jl")
 include("output.jl")
 include("templates.jl")
+include("colors.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;config::PlotConfig=PlotConfig())
@@ -146,7 +149,7 @@ export
     add_recession_bands!, Cycler,
 
     # other
-    savejson
+    savejson, colors
 
 
 function __init__()
@@ -166,7 +169,9 @@ function __init__()
     end
     @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" include("dataframes_api.jl")
     @require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("distributions.jl")
-    @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" JSON.lower(a::Colors.Colorant) = string("#", Colors.hex(a))
+    @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" begin
+        _json_lower(a::Colors.Colorant) = string("#", Colors.hex(a))
+    end
     @require JSON2="2535ab7d-5cd8-5a07-80ac-9b1792aadce3" JSON2.write(io::IO, p::Plot) = begin
         data = JSON.lower(p)
         pop!(data, :config, nothing)
