@@ -686,7 +686,7 @@ function add_vrect!(l::Union{Plot,Layout}, x0, x1; row::ROW_COL_TYPE="all", col:
 end
 
 function add_vline!(l::Union{Plot,Layout}, x; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
-    base_shape = hline(x; kw...)
+    base_shape = vline(x; kw...)
     _add_many_shapes!(l, base_shape, 'v', row, col)
 end
 
