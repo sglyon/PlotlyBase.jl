@@ -3,6 +3,10 @@
     data::Dict{Symbol,Vector{_ATTR}} = Dict()
     layout::PlotlyAttribute = attr()
 end
+_json_lower(t::Template) = Dict(
+    :data => _json_lower(t.data),
+    :layout => _json_lower(t.layout)
+)
 
 ==(t1::Template, t2::Template) =  t1.data == t2.data && t1.layout == t2.layout
 
