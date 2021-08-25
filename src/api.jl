@@ -522,7 +522,7 @@ function _get_colorway(l::Layout)
         "#BCBD22",
         "#17BECF",
     ]
-    Cycler(get(l, :template_colorway, D3_colorway))
+    Cycler(get(l.template.layout, :colorway, D3_colorway))
 end
 
 _get_seq_from_template_data(p::Plot, args...; kwargs...) = _get_seq_from_template_data(p.layout, args...; kwargs...)
@@ -532,7 +532,7 @@ function _get_seq_from_template_data(
         property_sub_path::Symbol,
         root_template_path::Symbol=:scatter
     )
-    template_specs = getindex(l, Symbol("template_data_$(root_template_path)"))
+    template_specs = get(l.template.data, root_template_path, Dict())
     if !isempty(template_specs)
         seq = []
         default_ix = 0
@@ -639,8 +639,8 @@ function _add_many_shapes!(
     _check_row_col_arg(l, row, "row", 1)
     _check_row_col_arg(l, col, "col", 2)
 
-    if direction != 'h' && direction != 'v'
-        error("direction must be one of `'h'` or `'v'`")
+    if direction != 'h' && direction != 'v' && direction != 'X'
+        error("direction must be one of `'h'` or `'v' (or 'X' for no direction)`")
     end
 
     shapes = get(l, :shapes, [])
@@ -659,9 +659,14 @@ function _add_many_shapes!(
         if direction == 'h'
             new_shape.xref = "$xid domain"
             new_shape.yref = yid
-        else
+        end
+        if direction == 'v'
             new_shape.xref = xid
             new_shape.yref = "$yid domain"
+        end
+        if direction == 'X'
+            new_shape.xref = xid
+            new_shape.yref = yid
         end
         push!(shapes, new_shape)
     end
@@ -690,4 +695,8 @@ function add_vline!(l::Union{Plot,Layout}, x; row::ROW_COL_TYPE="all", col::ROW_
     _add_many_shapes!(l, base_shape, 'v', row, col)
 end
 
-export add_hrect!, add_hline!, add_vrect!, add_vline!
+function add_shape!(l::Union{Plot,Layout}, base_shape; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all")
+    _add_many_shapes!(l, base_shape, 'X', row, col)
+end
+
+export add_hrect!, add_hline!, add_vrect!, add_vline!, add_shape!
