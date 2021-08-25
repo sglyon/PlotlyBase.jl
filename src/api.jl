@@ -522,7 +522,7 @@ function _get_colorway(l::Layout)
         "#BCBD22",
         "#17BECF",
     ]
-    Cycler(get(l, :template_colorway, D3_colorway))
+    Cycler(get(l.template.layout, :colorway, D3_colorway))
 end
 
 _get_seq_from_template_data(p::Plot, args...; kwargs...) = _get_seq_from_template_data(p.layout, args...; kwargs...)
@@ -532,7 +532,7 @@ function _get_seq_from_template_data(
         property_sub_path::Symbol,
         root_template_path::Symbol=:scatter
     )
-    template_specs = getindex(l, Symbol("template_data_$(root_template_path)"))
+    template_specs = get(l.template.data, root_template_path, Dict())
     if !isempty(template_specs)
         seq = []
         default_ix = 0
