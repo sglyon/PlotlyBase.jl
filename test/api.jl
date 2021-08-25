@@ -272,3 +272,22 @@ end
         @test length(p.data) == 23  # adds 8 because we get full 4x2 grid
     end
 end
+
+@testset "add_shape!" begin
+    p = Plot(Layout(Subplots(rows=2, cols=2)))
+    add_trace!(p, scatter(y=rand(4)), row="all", col="all")
+    add_shape!(p, rect(x0=2, x1=4, y0=0.2, y1=0.5, line_color="purple"), row="all", col="all")
+    @test length(p.layout.shapes) == 4
+    @test all(s -> s.type == "rect", p.layout.shapes)
+    @test all(s -> s.line_color == "purple", p.layout.shapes)
+
+    add_shape!(p, line(x0=1, x1=3, y0=.5, y1=.9, line_color="yellow"), row="all", col=2)
+    @test length(p.layout.shapes) == 6
+    @test all(s -> s.type == "line", p.layout.shapes[5:6])
+    @test all(s -> s.line_color == "yellow", p.layout.shapes[5:6])
+
+    add_shape!(p, circle(x0=4, y0=0.2, x1=5, y1=0.7, line_color="black"), row=2)
+    @test length(p.layout.shapes) == 8
+    @test all(s -> s.type == "circle", p.layout.shapes[7:8])
+    @test all(s -> s.line_color == "black", p.layout.shapes[7:8])
+end
