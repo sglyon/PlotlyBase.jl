@@ -245,9 +245,10 @@ Base.iterate(hf::HasFields, x) = iterate(hf.fields, x)
 
 ==(hf1::T, hf2::T) where {T <: HasFields} = hf1.fields == hf2.fields
 
-_obtain_setindex_val(container::Any, val::Any) = val
-_obtain_setindex_val(container::Dict, val::Any) = haskey(container, val) ? container[val] : val
-_obtain_setindex_val(container::Any, func::Function) = func(container)
+# NOTE: there is another method in dataframes_api.jl
+_obtain_setindex_val(container::Any, val::Any, key::_Maybe{Symbol}=missing) = val
+_obtain_setindex_val(container::Dict, val::Any, key::_Maybe{Symbol}=missing) = haskey(container, val) ? container[val] : val
+_obtain_setindex_val(container::Any, func::Function, key::_Maybe{Symbol}=missing) = func(container)
 
 # no container
 Base.setindex!(gt::HasFields, val, key::String...) = setindex!(gt, val, missing, key...)
@@ -283,7 +284,7 @@ function Base.setindex!(gt::HasFields, val, container, key::Symbol)
             return setindex!(gt, val, container, string(key))
         end
     end
-    gt.fields[key] = _obtain_setindex_val(container, val)
+    gt.fields[key] = _obtain_setindex_val(container, val, key)
 end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol)

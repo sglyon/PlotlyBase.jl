@@ -12,8 +12,31 @@ function _group_name(df::DataFrames.AbstractDataFrame, groups::Vector{Symbol})
     join([df[1, g] for g in groups], ", ")
 end
 
-function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symbol)
-    hasproperty(container, val) ? container[!, val] : val
+
+function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Vector{Symbol}, key::Symbol)
+    if key == :dimensions
+        out = []
+        for v in val
+            if hasproperty(container, v)
+                push!(out, attr(label=v, values=container[!, v]))
+            else
+                push!(out, v)
+            end
+        end
+        return out
+    end
+    val
+end
+
+# hook into setindex!
+function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symbol, key::Symbol)
+    if hasproperty(container, val)
+        if key == :dimensions
+            return [attr(label=val, values=container[!, val])]
+        end
+        return container[!, val]
+    end
+    val
 end
 
 """
@@ -64,6 +87,13 @@ function GenericTrace(df::DataFrames.AbstractDataFrame; group=missing, kind="sca
     for (key, value) in kwargs
         # use `df` as `container` in setindex! for each property
         attrs[df, key] = value
+    end
+    if Symbol(kind) == :splom && :dimensions in keys(kwargs)
+        attrs[:diagonal_visible] = false
+        @assert attrs.dimensions isa Vector
+        for d in attrs.dimensions
+            d.axis_matches = true
+        end
     end
     GenericTrace(kind; attrs...)
 end
@@ -123,8 +153,6 @@ end
 function _faceted_subplot_titles(nr::Int, nc::Int, titles::Vector{String})
     subplot_titles = _Maybe{String}[missing for _ in 1:nr, _ in 1:nc]
 
-    # we need
-    title_indices = CartesianIndices((nr, nc))
     for title_ix in 1:length(titles)
         idx = _ind2sub_rowmajor(nr, nc, title_ix)
         subplot_titles[idx] = titles[title_ix]
@@ -434,6 +462,9 @@ function Plot(
         end
     end
 
+    if Symbol(get(kwargs, :kind, "")) == :splom
+        out.layout.dragmode = "select"
+    end
 
     return out
 end
