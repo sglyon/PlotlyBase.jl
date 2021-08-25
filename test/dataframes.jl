@@ -43,3 +43,29 @@ end
     @test size(p_7x7.layout.subplots.grid_ref) == (7, 7)
 
 end
+
+@testset "splom and dimensions" begin
+    df = DataFrame(d1=rand(10), d2=rand(10), d3=rand(10), color_col=vcat(fill("c1", 5), fill("c2", 5)))
+    p1 = Plot(df, dimensions=[:d1, :d2], kind="splom")
+    @test length(p1.data) == 1
+    trace = p1.data[1]
+    @test !trace.diagonal_visible
+    @test length(trace.dimensions) == 2
+    @test trace.dimensions[1].label == :d1
+    @test trace.dimensions[1].values == df[!, :d1]
+    @test trace.dimensions[2].label == :d2
+    @test trace.dimensions[2].values == df[!, :d2]
+    @test all(x -> x.axis_matches, trace.dimensions)
+
+    p2 = Plot(df, dimensions=[:d1, :d2], kind="splom", color=:color_col)
+    @test length(p2.data) == 2
+    for (trace, inds) in zip(p2.data, [1:5, 6:10])
+        @test !trace.diagonal_visible
+        @test length(trace.dimensions) == 2
+        @test trace.dimensions[1].label == :d1
+        @test trace.dimensions[1].values == df[inds, :d1]
+        @test trace.dimensions[2].label == :d2
+        @test trace.dimensions[2].values == df[inds, :d2]
+        @test all(x -> x.axis_matches, trace.dimensions)
+    end
+end
