@@ -393,21 +393,21 @@ function Plot(
         end
 
         for sub_dfg in collect(DataFrames.groupby(dfg, groupby_cols))
-            extra_kw = attr()
+            all_kw = attr(;kwargs...)
             group_obs = Any[sub_dfg[1, g] for g in groupby_cols]
             group_name = join(string.(group_obs), ",")
             if length(group_name) > 0
-                extra_kw.name = group_name
-                extra_kw.legendgroup = group_name
-                extra_kw.showlegend = false
+                all_kw.name = group_name
+                all_kw.legendgroup = group_name
+                all_kw.showlegend = false
             end
             for (groupname, trace_attr) in group_attr_pairs
                 if !ismissing(getfield(_group_args, groupname))
                     obs = sub_dfg[1, _group_cols[groupname]]
-                    extra_kw[trace_attr] = _group_maps[groupname][obs]
+                    all_kw[trace_attr] = _group_maps[groupname][obs]
                 end
             end
-            traces = GenericTrace(sub_dfg; group=group, kwargs..., extra_kw...,)
+            traces = GenericTrace(sub_dfg; group=group, all_kw...,)
 
             traces_vec = traces isa GenericTrace ? [traces] : traces
             for trace in traces_vec
