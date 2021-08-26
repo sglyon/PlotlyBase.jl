@@ -37,6 +37,48 @@ function _requirejs_config()
     """
 end
 
+"""
+    to_html(
+        io::IO,
+        p::Plot;
+        autoplay::Bool=true,
+        include_plotlyjs::Union{String,Missing}="cdn",
+        include_mathjax::Union{String,Missing}="cdn",
+        post_script::Union{String,Missing}=missing,
+        full_html::Bool=true,
+        animation_opts::Union{Dict,Missing}=missing,
+        default_width::String="100%",
+        default_height::String="100%"
+    )
+
+- io: IO stream to write to
+- p: Plot to save
+- autoplay: Should animations start automatically
+- include_plotlyjs: How to include plotly.js. Options are
+    - cdn: include a <script> tag to load plotly.js from cdn. Output will be standalone
+    - require: load using requirejs. Useful in Jupyter notebooks
+    - require-loaded: assume a `plotly` statement has already loaded
+      via requirejs (don't load it in context of this plot)
+    - directory: hardcode `<script src="plotly.min.js>` -- will
+      only work when the plotly.min.js file is in the same directory
+      as the output file
+    - anything ending in js: we assume you give us the path to the
+      plotly.js file. We will read it in and include it inline in the
+      output. Works best when points to a minified file (plotly.min.js)
+- include_mathjax: How mathjax should be included. Options are
+    - string ending in .js: we load via
+      `<script src="\$(include_mathjax)">`. You are responsible for
+      making sure it resolves
+    - anything else: we load via cdn for you
+- post_script: arbitrary javascript to run after plotly.js
+  finishes drawing the plot
+- full_html: include all parts necessary for standalone html file
+- animation_opts: extra options used to control animation. included
+  in `addFrames` call after the actual frames. See plotly.js docs for
+  more info on `addFrames`
+- default_width: valid css specifier for width
+- default_height: valid css specifier for height
+"""
 function to_html(
         io::IO,
         p::Plot;
