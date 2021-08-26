@@ -250,6 +250,7 @@ Base.iterate(hf::HasFields, x) = iterate(hf.fields, x)
 _obtain_setindex_val(container::Any, val::Any, key::_Maybe{Symbol}=missing) = val
 _obtain_setindex_val(container::Dict, val::Any, key::_Maybe{Symbol}=missing) = haskey(container, val) ? container[val] : val
 _obtain_setindex_val(container::Any, func::Function, key::_Maybe{Symbol}=missing) = func(container)
+_obtain_setindex_val(container::Missing, func::Function, key::_Maybe{Symbol}=missing) = func
 
 # no container
 Base.setindex!(gt::HasFields, val, key::String...) = setindex!(gt, val, missing, key...)
