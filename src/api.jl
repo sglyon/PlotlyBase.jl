@@ -536,15 +536,18 @@ function _get_seq_from_template_data(
     if !isempty(template_specs)
         seq = []
         default_ix = 0
+        has_any_specs = false
         for spec in template_specs
             want = get(spec, property_sub_path, Dict())
-            if ismissing(want)
+            if ismissing(want) || isempty(want)
                 push!(seq, default[default_ix += 1])
             else
+                has_any_specs = true
                 push!(seq, want)
             end
         end
-        return Cycler(seq)
+
+        return has_any_specs ? Cycler(seq) : default
     end
     return default
 end
@@ -618,7 +621,7 @@ for (k1, k2) in _layout_obj_updaters
     @eval export $k1
 end
 
-const _layout_vector_updaters = [:update_annotations! => :(layout.annotations), :update_shapes! => :(layout.shapes)]
+const _layout_vector_updaters = [:update_annotations! => :(layout.annotations), :update_shapes! => :(layout.shapes), :update_images! => :(layout.images)]
 
 for (k1, k2) in _layout_vector_updaters
     @eval function $(k1)(layout::Layout, with::PlotlyAttribute; kwargs...)
@@ -660,24 +663,30 @@ function _add_many_layout_objects!(
         xid = string("x", xax[6:end])
         yid = string("y", yax[6:end])
 
-        new_shape = deepcopy(base_shape)
+        new_val = deepcopy(base_val)
         if direction == 'h'
-            new_shape.xref = "$xid domain"
-            new_shape.yref = yid
+            new_val.xref = "$xid domain"
+            new_val.yref = yid
         end
         if direction == 'v'
-            new_shape.xref = xid
-            new_shape.yref = "$yid domain"
+            new_val.xref = xid
+            new_val.yref = "$yid domain"
         end
         if direction == 'X'
-            new_shape.xref = xid
-            new_shape.yref = yid
+            new_val.xref = xid
+            new_val.yref = yid
         end
-        push!(shapes, new_shape)
+        if direction == 'I'
+            new_val.xref = "$xid domain"
+            new_val.yref = "$yid domain"
+        end
+        push!(layout_vec, new_val)
     end
-    l.shapes = shapes
+    l[layout_key] = layout_vec
 end
 
+_add_many_layout_objects!(p::Plot, args...) = _add_many_layout_objects!(p.layout, args...)
+_add_many_shapes!(l::Layout, args...) = _add_many_layout_objects!(l, args..., :shapes)
 _add_many_shapes!(p::Plot, args...) = _add_many_shapes!(p.layout, args...)
 
 function add_hrect!(l::Union{Plot,Layout}, y0, y1; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
