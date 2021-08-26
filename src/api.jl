@@ -631,22 +631,27 @@ for (k1, k2) in _layout_vector_updaters
     @eval export $(k1)
 end
 
+function _get_subplot_grid_refs(l::Layout, row::ROW_COL_TYPE, col::ROW_COL_TYPE)
+    gridref_row_ix = row isa String ? Colon() : row
+    gridref_col_ix = col isa String ? Colon() : col
 
+    out = l.subplots.grid_ref[gridref_row_ix, gridref_col_ix]
+    (out[1] isa Array) ? out : [out]
+end
 
-function _add_many_shapes!(
-        l::Layout, base_shape::Shape, direction::Char, row::ROW_COL_TYPE, col::ROW_COL_TYPE
+function _add_many_layout_objects!(
+        l::Layout, base_val::HasFields, direction::Char, row::ROW_COL_TYPE, col::ROW_COL_TYPE, layout_key::Symbol
     )
     _check_row_col_arg(l, row, "row", 1)
     _check_row_col_arg(l, col, "col", 2)
 
-    if direction != 'h' && direction != 'v' && direction != 'X'
-        error("direction must be one of `'h'` or `'v' (or 'X' for no direction)`")
+    known_directions = ['h', 'v', 'X', 'I']
+    if !(direction in known_directions)
+        error("direction must be one of $(known_directions)")
     end
 
-    shapes = get(l, :shapes, [])
-    gridref_row_ix = row isa String ? Colon() : row
-    gridref_col_ix = col isa String ? Colon() : col
-    for refs in l.subplots.grid_ref[gridref_row_ix, gridref_col_ix]
+    layout_vec = get(l, layout_key, [])
+    for refs in _get_subplot_grid_refs(l, row, col)
         # refs is always a vector...
         ref = refs[1]
 
@@ -699,4 +704,8 @@ function add_shape!(l::Union{Plot,Layout}, base_shape; row::ROW_COL_TYPE="all", 
     _add_many_shapes!(l, base_shape, 'X', row, col)
 end
 
-export add_hrect!, add_hline!, add_vrect!, add_vline!, add_shape!
+function add_layout_image!(l::Union{Plot,Layout}, base_img; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all")
+    _add_many_layout_objects!(l, base_img, 'I', row, col, :images)
+end
+
+export add_hrect!, add_hline!, add_vrect!, add_vline!, add_shape!, add_layout_image!
