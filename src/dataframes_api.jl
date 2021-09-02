@@ -29,9 +29,9 @@ function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Vect
 end
 
 # hook into setindex!
-function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symbol, key::Symbol)
+function _obtain_setindex_val(container::DataFrames.AbstractDataFrame, val::Symbol, key::_Maybe{Symbol}=missing)
     if hasproperty(container, val)
-        if key == :dimensions
+        if isequal(key, :dimensions)
             return [attr(label=val, values=container[!, val])]
         end
         return container[!, val]
@@ -464,6 +464,15 @@ function Plot(
 
     if Symbol(get(kwargs, :kind, "")) == :splom
         out.layout.dragmode = "select"
+    end
+
+    # check dimensions for label maps
+    for trace in out.data
+        if !_isempty(trace.dimensions)
+            for dim in trace.dimensions
+                dim.label = get(label_map, dim.label, dim.label)
+            end
+        end
     end
 
     return out

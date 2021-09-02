@@ -200,6 +200,8 @@ const _UNDERSCORE_ATTRS = [:error_x, :copy_ystyle, :error_z, :plot_bgcolor,
                            :paper_bgcolor, :copy_zstyle, :error_y, :hr_name]
 
 _isempty(x) = isempty(x)
+_isempty(::Union{Nothing,Missing}) = true
+_isempty(x::Bool) = x
 _isempty(x::Union{Symbol,String}) = false
 
 function Base.merge(hf::HasFields, d::Dict)
@@ -291,18 +293,20 @@ end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol)
     d1 = get(gt.fields, k1, Dict())
-    d1[k2] = _obtain_setindex_val(container, val)
+    si_val = _obtain_setindex_val(container, val)
+    d1[k2] = si_val
     gt.fields[k1] = d1
-    val
+    si_val
 end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol, k3::Symbol)
     d1 = get(gt.fields, k1, Dict())
     d2 = get(d1, k2, Dict())
-    d2[k3] = _obtain_setindex_val(container, val)
+    si_val = _obtain_setindex_val(container, val)
+    d2[k3] = si_val
     d1[k2] = d2
     gt.fields[k1] = d1
-    val
+    si_val
 end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
@@ -310,11 +314,12 @@ function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
     d1 = get(gt.fields, k1, Dict())
     d2 = get(d1, k2, Dict())
     d3 = get(d2, k3, Dict())
-    d3[k4] = _obtain_setindex_val(container, val)
+    si_val = _obtain_setindex_val(container, val)
+    d3[k4] = si_val
     d2[k3] = d3
     d1[k2] = d2
     gt.fields[k1] = d1
-    val
+    si_val
 end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
@@ -323,12 +328,13 @@ function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
     d2 = get(d1, k2, Dict())
     d3 = get(d2, k3, Dict())
     d4 = get(d3, k4, Dict())
-    d4[k5] = _obtain_setindex_val(container, val)
+    si_val = _obtain_setindex_val(container, val)
+    d4[k5] = si_val
     d3[k4] = d4
     d2[k3] = d3
     d1[k2] = d2
     gt.fields[k1] = d1
-    val
+    si_val
 end
 
 #= NOTE: I need to special case instances when `val` is Associatve like so that
@@ -347,6 +353,11 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, key::Sy
         if !in(key, _UNDERSCORE_ATTRS)
             return setindex!(gt, val, string(key))
         end
+    end
+
+    if key === :geojson
+        gt.fields[key] = val
+        return
     end
 
     for (k, v) in val

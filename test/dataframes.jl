@@ -69,3 +69,9 @@ end
         @test all(x -> x.axis_matches, trace.dimensions)
     end
 end
+
+@testset "_obtain_setindex_val for marker_size" begin
+    df = DataFrame(d1=rand(10), d2=rand(10), d3=rand(10))
+    p = Plot(df, x=:d1, y=:d2, marker_size=:d3)
+    @test p.data[1].marker_size == df.d3
+end
