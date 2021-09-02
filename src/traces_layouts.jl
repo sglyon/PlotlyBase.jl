@@ -47,7 +47,7 @@ kind(l::Layout) = "layout"
 # Specific types of trace or layout attributes #
 # -------------------------------------------- #
 
-function attr(fields=Dict{Symbol,Any}(); kwargs...)
+function attr(fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
     s = PlotlyAttribute(fields)
     for (k, v) in kwargs
@@ -55,6 +55,7 @@ function attr(fields=Dict{Symbol,Any}(); kwargs...)
     end
     s
 end
+attr(x::PlotlyAttribute; kw...) = attr(;x..., kw...)
 
 mutable struct PlotlyFrame{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttribute
     fields::T

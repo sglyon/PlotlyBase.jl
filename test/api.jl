@@ -291,3 +291,31 @@ end
     @test all(s -> s.type == "circle", p.layout.shapes[7:8])
     @test all(s -> s.line_color == "black", p.layout.shapes[7:8])
 end
+
+@testset "unpack namedtuple type figure" begin
+    fig = (
+        data = [
+            (type = "scatter", x = 1:4, y = rand(4), mode = "markers", marker = (line = (color = "red", width = 2), size = 8)),
+            (type = "scatter", x = 1:4, y = rand(4))
+        ],
+        layout = (hovermode = "unified",)
+    )
+    plots = Plot[
+        Plot(fig)
+        Plot((layout = fig.layout, data = fig.data))
+        Plot((;frames=[], fig...))
+        Plot((;fig..., frames=[]))
+        Plot((layout = fig.layout, frames = [], data = fig.data))
+        Plot((data = fig.data, frames = [], layout = fig.layout))
+    ]
+    p1 = plots[1];
+    for p2 in plots[2:end]
+        @test p1.layout == p2.layout
+        @test p1.data == p2.data
+    end
+    @test p1.data[1] isa GenericTrace
+    @test p1.data[1].marker isa Dict
+    @test p1.data[1].marker_line isa Dict
+    @test p1.data[1].marker_line_width isa Number
+
+end

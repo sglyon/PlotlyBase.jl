@@ -114,6 +114,24 @@ function Plot(
     Plot(traces, l; config=config)
 end
 
+_make_attrable(x::Union{Number,Symbol,String,Missing,Nothing}) = x
+_make_attrable(x::AbstractArray) = _make_attrable.(x)
+function _make_attrable(x::Union{NamedTuple,_LikeAssociative})
+    out = attr()
+    for (k, v) in pairs(x)
+        out[k] = _make_attrable(v)
+    end
+    out
+end
+
+
+function attr(nt::NamedTuple)
+    out = attr()
+    for (k, v) in pairs(nt)
+        out[k] = _make_attrable(v)
+    end
+    out
+end
 
 # for reading from a namedtuple that Dash.jl
 # generates when using `dcc_graph` as state
@@ -121,31 +139,42 @@ function Plot(fig::NamedTuple{(:layout, :frames, :data)})
     traces = GenericTrace[]
     for tr in fig.data
         kind = hasproperty(tr, :kind) ? tr.kind : "scatter"
-        push!(traces, GenericTrace(kind; tr...))
+        push!(traces, GenericTrace(kind; attr(tr)...))
     end
-    layout = Layout(;fig.layout...)
-    if hasproperty(fig.layout, :template)
+    layout_attr = attr(fig.layout)
+    if hasproperty(layout_attr, :template)
         t_layout = Layout()
-        if hasproperty(fig.layout.template, :layout)
-            t_layout = Layout(;fig.layout.template.layout...)
+        if hasproperty(layout_attr.template, :layout)
+            t_layout = Layout(;attr(fig.layout.template.layout)...)
         end
+        pop!(t_layout, :template)  # remove nested template
+
+        # now translate traces into _ATTR[]
         t_data = Dict{Symbol,Vector{_ATTR}}()
-        if hasproperty(fig.layout.template, :data)
+        if hasproperty(layout_attr, :data)
             for (k, v) in pairs(fig.layout.template.data)
                 attrs = _ATTR[]
                 for trace_spec in v
-                    push!(attrs, attr(;trace_spec...))
+                    push!(attrs, attr(trace_spec))
                 end
                 t_data[Symbol(k)] = attrs
             end
         end
-        layout.template = Template(t_data, t_layout)
+        layout_attr.fields[:template] = Template(t_data, t_layout)
     end
+    layout = Layout(layout_attr.fields)
     frames = PlotlyFrame[]
     for f in fig.frames
         push!(frames, frame(;f...))
     end
     Plot(traces, layout, frames)
+end
+
+
+Plot(fig::NamedTuple{(:layout, :data)}) = Plot((layout = fig.layout, frames = [], data = fig.data))
+Plot(fig::NamedTuple{(:data, :layout)}) = Plot((layout = fig.layout, frames = [], data = fig.data))
+for order in [(:data, :layout, :frames), (:data, :frames, :layout), (:frames, :data, :layout), (:frames, :layout, :data), (:layout, :data, :frames)]
+    @eval Plot(fig::NamedTuple{$(order)}) = Plot((layout = fig.layout, frames = fig.frames, data = fig.data))
 end
 
 
