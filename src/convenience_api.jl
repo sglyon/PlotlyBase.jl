@@ -115,6 +115,39 @@ function Plot(
 end
 
 
+# for reading from a namedtuple that Dash.jl
+# generates when using `dcc_graph` as state
+function Plot(fig::NamedTuple{(:layout, :frames, :data)})
+    traces = GenericTrace[]
+    for tr in fig.data
+        kind = hasproperty(tr, :kind) ? tr.kind : "scatter"
+        push!(traces, GenericTrace(kind; tr...))
+    end
+    layout = Layout(;fig.layout...)
+    if hasproperty(fig.layout, :template)
+        t_layout = Layout()
+        if hasproperty(fig.layout.template, :layout)
+            t_layout = Layout(;fig.layout.template.layout...)
+        end
+        t_data = Dict{Symbol,Vector{_ATTR}}()
+        if hasproperty(fig.layout.template, :data)
+            for (k, v) in pairs(fig.layout.template.data)
+                attrs = _ATTR[]
+                for trace_spec in v
+                    push!(attrs, attr(;trace_spec...))
+                end
+                t_data[Symbol(k)] = attrs
+            end
+        end
+        layout.template = Template(t_data, t_layout)
+    end
+    frames = PlotlyFrame[]
+    for f in fig.frames
+        push!(frames, frame(;f...))
+    end
+    Plot(traces, layout, frames)
+end
+
 
 """
 $(SIGNATURES)
