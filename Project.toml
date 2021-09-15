@@ -1,6 +1,6 @@
 name = "PlotlyBase"
 uuid = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
-version = "0.8.16"
+version = "0.8.17"
 
 [deps]
 ColorSchemes = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
