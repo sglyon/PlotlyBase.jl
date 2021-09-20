@@ -492,10 +492,11 @@ end
 
 
 function add_trace!(p::Plot, trace::GenericTrace; row::ROW_COL_TYPE=1, col::ROW_COL_TYPE=1, secondary_y::Bool=false)
-    if row == 1 && col == 1
-        push!(p.data, trace)
-        return p
-    end
+    # NOTE: This causes the domain to not be set for the first plot (row=1, col=1)
+    # if row == 1 && col == 1
+    #     push!(p.data, trace)
+    #     return p
+    # end
 
     _check_row_col_arg(p.layout, row, "row", 1)
     _check_row_col_arg(p.layout, col, "col", 2)
