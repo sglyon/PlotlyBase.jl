@@ -48,14 +48,14 @@ end
         relayout!(l, Dict{Symbol,Any}(:title => "Fuzzy"); xaxis_title="wuzzy")
         @test l["title"] == "Fuzzy"
         @test l["xaxis.title.text"] == "wuzzy"
-    end
+        end
 
     @testset "test react!" begin
         t1, t2, t3, l, p = fresh_data()
         t4 = bar(x=[1, 2, 3], y=[42, 242, 142])
         l2 = Layout(xaxis_title="wuzzy")
         react!(p, [t4], l2)
-
+        
         @test length(p.data) == 1
         @test p.data[1] == t4
         @test p.layout == l2
@@ -90,7 +90,7 @@ end
         # test for all traces in plot
         restyle!(p, 1:3, Dict{Symbol,Any}(:opacity => 0.42); marker_color="white")
         for i in 1:3
-            @test p.data[i]["opacity"] == 0.42
+        @test p.data[i]["opacity"] == 0.42
             @test p.data[i]["marker.color"] == "white"
         end
 
@@ -234,7 +234,7 @@ end
 
         @test p2.layout.xaxis2_showticklabels
         @test p2.layout.xaxis_showticklabels
-
+        
         p3 = [p; p]
         @test PlotlyBase._isempty(p3.layout.yaxis2_showticklabels)
         @test PlotlyBase._isempty(p3.layout.yaxis_showticklabels)
@@ -317,5 +317,43 @@ end
     @test p1.data[1].marker isa Dict
     @test p1.data[1].marker_line isa Dict
     @test p1.data[1].marker_line_width isa Number
+
+end
+
+@testet "subplots" begin
+
+    using PlotlyJS
+
+    labels = ["1st", "2nd", "3rd", "4th", "5th"]
+
+    # Define color sets of paintings
+    night_colors = ["rgb(56, 75, 126)", "rgb(18, 36, 37)", "rgb(34, 53, 101)",
+                    "rgb(36, 55, 57)", "rgb(6, 4, 4)"]
+    sunflowers_colors = ["rgb(177, 127, 38)", "rgb(205, 152, 36)", "rgb(99, 79, 37)",
+                        "rgb(129, 180, 179)", "rgb(124, 103, 37)"]
+    irises_colors = ["rgb(33, 75, 99)", "rgb(79, 129, 102)", "rgb(151, 179, 100)",
+                    "rgb(175, 49, 35)", "rgb(36, 73, 147)"]
+    cafe_colors =  ["rgb(146, 123, 21)", "rgb(177, 180, 34)", "rgb(206, 206, 40)",
+                    "rgb(175, 51, 21)", "rgb(35, 36, 21)"]
+
+    # Create subplots, using "domain" type for pie charts
+    fig = make_subplots(rows=2, cols=2, specs=fill(Spec(kind="domain"), 2, 2))
+
+    # Define pie charts
+    add_trace!(fig, pie(labels=labels, values=[38, 27, 18, 10, 7], name="Starry Night",
+                        marker_colors=night_colors), row=1, col=1)
+    add_trace!(fig, pie(labels=labels, values=[28, 26, 21, 15, 10], name="Sunflowers",
+                        marker_colors=sunflowers_colors), row=1, col=2)
+    add_trace!(fig, pie(labels=labels, values=[38, 19, 16, 14, 13], name="Irises",
+                        marker_colors=irises_colors), row=2, col=1)
+    add_trace!(fig, pie(labels=labels, values=[31, 24, 19, 18, 8], name="The Night Café",
+                        marker_colors=cafe_colors), row=2, col=2)
+
+    # Tune layout and hover info
+    restyle!(fig, hoverinfo="label+percent+name", textinfo="none")
+    relayout!(fig, title_text="Van Gogh: 5 Most Prominent Colors Shown Proportionally",
+            showlegend=false)
+
+    @test fig.data[1].domain isa Dict
 
 end
