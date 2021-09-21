@@ -354,6 +354,7 @@ end
     relayout!(fig, title_text="Van Gogh: 5 Most Prominent Colors Shown Proportionally",
             showlegend=false)
 
-    @test fig.data[1].domain isa Dict
+    @test fig.data[1].domain.y isa Array
+    @test fig.data[1].domain.x isa Array
 
 end
