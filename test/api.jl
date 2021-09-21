@@ -322,8 +322,6 @@ end
 
 @testset "subplots" begin
 
-    using PlotlyJS
-
     labels = ["1st", "2nd", "3rd", "4th", "5th"]
 
     # Define color sets of paintings
@@ -337,7 +335,9 @@ end
                     "rgb(175, 51, 21)", "rgb(35, 36, 21)"]
 
     # Create subplots, using "domain" type for pie charts
-    fig = make_subplots(rows=2, cols=2, specs=fill(Spec(kind="domain"), 2, 2))
+    layout = Layout(Subplots(rows=2, cols=2, specs=fill(Spec(kind="domain"), 2, 2)))
+    fig = Plot(layout)
+    
 
     # Define pie charts
     add_trace!(fig, pie(labels=labels, values=[38, 27, 18, 10, 7], name="Starry Night",
@@ -354,7 +354,7 @@ end
     relayout!(fig, title_text="Van Gogh: 5 Most Prominent Colors Shown Proportionally",
             showlegend=false)
 
-    @test fig.data[1].domain.y isa Array
-    @test fig.data[1].domain.x isa Array
+    @test !isempty(fig.data[1].domain_y)
+    @test !isempty(fig.data[1].domain_x)
 
 end
