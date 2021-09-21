@@ -320,7 +320,7 @@ end
 
 end
 
-@testet "subplots" begin
+@testset "subplots" begin
 
     using PlotlyJS
 
