@@ -99,10 +99,14 @@ function _cat(rows::Tuple{Vararg{Int}}, ps::Plot...)
         layout["yaxis$ix"] = merge(copied_plots[ix].layout["yaxis"], layout["yaxis$ix"])
 
         if _is3d(copied_plots[ix])
-            # need to move (x|y)axis$ix into scene$ix here
+            # need to remove (x|y)axis$ix and move their domains into scene$ix here
+            xaxis = pop!(layout, "xaxis$(ix)")
+            yaxis = pop!(layout, "yaxis$(ix)")
             layout["scene$ix"] = attr(
-                xaxis=pop!(layout, "xaxis$(ix)"),
-                yaxis=pop!(layout, "yaxis$(ix)")
+                domain = attr(
+                    x = xaxis[:domain],
+                    y = yaxis[:domain]
+                )
             )
             for trace in copied_plots[ix].data
                 trace["scene"] = "scene$ix"
@@ -111,7 +115,7 @@ function _cat(rows::Tuple{Vararg{Int}}, ps::Plot...)
             for trace in copied_plots[ix].data
                 trace["xaxis"] = "x$ix"
                 trace["yaxis"] = "y$ix"
-end
+            end
         end
 
     end
