@@ -11,3 +11,6 @@ JSON3.rawbytes(plot::PlotlyBase.Plot) = codeunits(JSON.json(plot))
 
 StructTypes.StructType(::Type{<:PlotlyBase.AbstractTrace}) = JSON3.RawType()
 JSON3.rawbytes(trace::PlotlyBase.AbstractTrace) = codeunits(JSON.json(trace))
+  
+StructTypes.StructType(::Type{<:AbstractLayout}) = JSON3.RawType()
+JSON3.rawbytes(layout::AbstractLayout) = codeunits(JSON.json(layout))
