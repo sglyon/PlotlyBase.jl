@@ -8,3 +8,6 @@ const StructTypes = JSON3.StructTypes
 
 StructTypes.StructType(::Type{<:PlotlyBase.Plot}) = JSON3.RawType()
 JSON3.rawbytes(plot::PlotlyBase.Plot) = codeunits(JSON.json(plot))
+
+StructTypes.StructType(::Type{<:HasFields}) = JSON3.RawType()
+JSON3.rawbytes(x::HasFields) = codeunits(JSON.json(x))
