@@ -232,7 +232,7 @@ function to_html(
 
     if full_html
         return print(io, """<html>
-        <head><meta chartset="utf-8" /></head>
+        <head><meta charset="utf-8" /></head>
         <body>
         $(html_div)
         </body>
