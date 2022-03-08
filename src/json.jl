@@ -58,7 +58,7 @@ function JSON.lower(p::Plot)
 end
 
 # Let string interpolation stringify to JSON format
-Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot}) = print(io, JSON.json(a))
+Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot,PlotConfig}) = print(io, JSON.json(a))
 Base.print(io::IO, a::Vector{T}) where {T <: GenericTrace} = print(io, JSON.json(a))
 
 GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(pop!(d, :type, "scatter"), d)
