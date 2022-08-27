@@ -19,11 +19,11 @@ UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [compat]
 ColorSchemes = "3"
-DocStringExtensions = "0.8"
+DocStringExtensions = "0.8, 0.9"
 JSON = "0.20, 0.21"
-LaTeXStrings = "1.1"
+LaTeXStrings = "^1.1"
 Parameters = "0.12"
-Requires = "1.0"
+Requires = "1"
 julia = "1.4"
 
 [extras]
