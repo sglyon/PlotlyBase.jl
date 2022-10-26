@@ -138,7 +138,7 @@ function _init_subplot_xy!(
     )
     # Get axis label and anchor
     x_count = max_subplot_ids["xaxis"] + 1
-    y_count = max_subplot_ids["xaxis"] + 1
+    y_count = max_subplot_ids["yaxis"] + 1
 
     # Compute x/y labels (the values of trace.xaxis/trace.yaxis
     x_label = "x$(x_count > 1 ? x_count : "")"
