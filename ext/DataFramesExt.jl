@@ -1,3 +1,13 @@
+module DataFramesExt
+
+using PlotlyBase
+isdefined(Base, :get_extension) ? (using DataFrames) : (using ..DataFrames)
+isdefined(Base, :get_extension) ? (using DocStringExtensions) : (using ..DocStringExtensions)
+
+import PlotlyBase: _Maybe, PlotlyAttribute, _TRACE_TYPES,
+                   GenericTrace, Plot, setifempty!, _isempty, _obtain_setindex_val,
+                   _get_default_seq
+
 using Base:Symbol
 # utilities
 
@@ -501,5 +511,7 @@ end
 
 for t in _TRACE_TYPES
     str_t = string(t)
-    @eval $t(df::DataFrames.AbstractDataFrame; kwargs...) = GenericTrace(df; kind=$(str_t), kwargs...)
+    @eval PlotlyBase.$t(df::DataFrames.AbstractDataFrame; kwargs...) = GenericTrace(df; kind=$(str_t), kwargs...)
+end
+
 end
