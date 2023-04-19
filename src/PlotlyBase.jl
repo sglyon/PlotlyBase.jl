@@ -20,7 +20,7 @@ using DelimitedFiles: readdlm
 
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
-export @L_mstr, @L_str
+export @L_str
 using Pkg.Artifacts
 
 # export some names from JSON
@@ -140,7 +140,7 @@ export
     extendtraces, prependtraces, react,
 
     # helper methods
-    plot, fork, vline, hline, attr, frame, add_trace!,
+    fork, vline, hline, attr, frame, add_trace!,
 
     # templates
     templates, Template,
