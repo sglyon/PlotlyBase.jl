@@ -1,0 +1,18 @@
+module IJuliaExt
+
+isdefined(Base, :get_extension) ? (using IJulia) : (using ..IJulia)
+using PlotlyBase
+
+function IJulia.display_dict(p::Plot)
+    Dict(
+        "application/vnd.plotly.v1+json" => JSON.lower(p),
+        "text/plain" => sprint(show, "text/plain", p),
+        "text/html" => let
+            buf = IOBuffer()
+            show(buf, MIME("text/html"), p, include_plotlyjs="require")
+            String(resize!(buf.data, buf.size))
+        end
+    )
+end
+
+end

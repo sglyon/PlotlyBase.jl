@@ -3,12 +3,15 @@ module PlotlyBase
 using Base.Iterators
 using JSON
 using DocStringExtensions
-using Requires
 using UUIDs
 using Dates
 using Logging
 using ColorSchemes
 using Parameters
+
+if !isdefined(Base, :get_extension)
+    using Requires
+end
 
 import Base: ==
 
@@ -17,7 +20,7 @@ using DelimitedFiles: readdlm
 
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
-export @L_mstr, @L_str
+export @L_str
 using Pkg.Artifacts
 
 # export some names from JSON
@@ -137,7 +140,7 @@ export
     extendtraces, prependtraces, react,
 
     # helper methods
-    plot, fork, vline, hline, attr, frame, add_trace!,
+    fork, vline, hline, attr, frame, add_trace!,
 
     # templates
     templates, Template,
@@ -151,33 +154,14 @@ export
     # other
     savejson, colors
 
-
+@static if !isdefined(Base, :get_extension)
 function __init__()
-    @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" begin
-
-        function IJulia.display_dict(p::Plot)
-            Dict(
-                "application/vnd.plotly.v1+json" => JSON.lower(p),
-                "text/plain" => sprint(show, "text/plain", p),
-                "text/html" => let
-                    buf = IOBuffer()
-                    show(buf, MIME("text/html"), p, include_plotlyjs="require")
-                    String(resize!(buf.data, buf.size))
-                end
-            )
-        end
-    end
-    @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" include("dataframes_api.jl")
-    @require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("distributions.jl")
-    @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" begin
-        _json_lower(a::Colors.Colorant) = string("#", Colors.hex(a))
-    end
-    @require JSON2="2535ab7d-5cd8-5a07-80ac-9b1792aadce3" JSON2.write(io::IO, p::Plot) = begin
-        data = JSON.lower(p)
-        pop!(data, :config, nothing)
-        JSON.print(io, data)
-    end
-    @require JSON3="0f8b85d8-7281-11e9-16c2-39a750bddbf1" include("json3.jl")
+    @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" include("../ext/IJuliaExt.jl")
+    @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" include("../ext/DataFramesExt.jl")
+    @require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("../ext/DistributionsExt.jl")
+    @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" include("../ext/ColorsExt.jl")
+    @require JSON3="0f8b85d8-7281-11e9-16c2-39a750bddbf1" include("../ext/JSON3Ext.jl")
 end
+end # @static
 
 end # module
