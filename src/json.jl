@@ -1,7 +1,7 @@
 # -------------------------------- #
 # Custom JSON output for our types #
 # -------------------------------- #
-JSON.lower(a::HasFields) = a.fields
+JSON.lower(a::HasFields) = _json_lower(a)
 JSON.lower(c::Cycler) = c.vals
 _json_lower(x) = JSON.lower(x)
 _json_lower(x::Union{Bool,String,Number,Nothing,Missing}) = x
