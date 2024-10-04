@@ -10,7 +10,7 @@ function IJulia.display_dict(p::Plot)
         "text/html" => let
             buf = IOBuffer()
             show(buf, MIME("text/html"), p, include_plotlyjs="require")
-            String(resize!(buf.data, buf.size))
+            String(take!(buf))
         end
     )
 end
