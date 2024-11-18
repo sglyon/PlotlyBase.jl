@@ -269,8 +269,8 @@ end
 
 Base.show(io::IO, ::MIME"text/html", p::Plot; kwargs...) = to_html(io, p; kwargs...)
 
-# integration with vscode and Juno
-function Base.show(io::IO, ::MIME"application/prs.juno.plotpane+html", p::Plot)
+# integration with VSCode
+function Base.show(io::IO, ::MIME"juliavscode/html", p::Plot)
     show(io, MIME("text/html"), p; include_mathjax="cdn", include_plotlyjs="cdn")
 end
 
