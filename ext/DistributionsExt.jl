@@ -1,3 +1,8 @@
+module DistributionsExt
+
+isdefined(Base, :get_extension) ? (using Distributions) : (using ..Distributions)
+using PlotlyBase
+
 _strip_module(s) = split(s, '.', limit=2)[end]
 _strip_type_param(s) = replace(s, r"{.+?}" => "")
 _clean_name(d::Distributions.Distribution) = _strip_module(_strip_type_param(repr(d)))
@@ -9,3 +14,5 @@ function scatter(d::Distributions.ContinuousUnivariateDistribution)
 end
 
 Plot(d::Distributions.UnivariateDistribution...) = Plot(collect(map(scatter, d)))
+
+end
