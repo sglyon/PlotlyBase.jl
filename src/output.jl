@@ -12,12 +12,14 @@ const _MATHJAX_CONFIG = """
 if (window.MathJax) {MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}
 </script>"""
 
-const PLOTLYJS_VERSION = "2.3.0"
+const PLOTLYJS_VERSION = Ref("2.33.0")
 
-const CDN_URL = "https://cdn.plot.ly/plotly-$(PLOTLYJS_VERSION).min.js"
+plotly_version() = PLOTLYJS_VERSION[]
+set_plotly_version(v) = PLOTLYJS_VERSION[] = v
 
+cdn_url(; plotly_version = plotly_version(), ext = ".js") = "https://cdn.plot.ly/plotly-$plotly_version.min$ext"
 
-function _requirejs_config()
+function _requirejs_config(; plotly_version = PlotlyBase.plotly_version())
     """
     $(_WINDOW_PLOTLY_CONFIG)
     $(_MATHJAX_CONFIG)
@@ -26,7 +28,7 @@ function _requirejs_config()
             require.undef("plotly");
             requirejs.config({
                 paths: {
-                    'plotly': ['$(rsplit(CDN_URL, '.', limit=2)[1])']
+                    'plotly': ['$(cdn_url(; plotly_version = plotly_version, ext=""))']
                 }
             });
             require(['plotly'], function(Plotly) {
@@ -159,7 +161,7 @@ function to_html(
     if !ismissing(include_plotlyjs)
         including = lowercase(include_plotlyjs)
         if including == "require"
-            load_plotlyjs = _requirejs_config()
+            load_plotlyjs = _requirejs_config(; plotly_version = plotly_version)
             require_start = "require([\"plotly\"], function(Plotly) {"
             require_end = "});"
         elseif including == "require-loaded"
@@ -192,7 +194,7 @@ function to_html(
         else  # assume cdn
             load_plotlyjs = """
             $(_WINDOW_PLOTLY_CONFIG)
-            <script src="$(CDN_URL)"></script>
+            <script src="$(cdn_url())"></script>
             """
         end
     end
