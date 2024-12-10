@@ -9,6 +9,9 @@ _json_lower(x::Union{Tuple,AbstractArray}) = _json_lower.(x)
 _json_lower(d::Dict) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(d))
 _json_lower(a::HasFields) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(a.fields))
 _json_lower(c::Cycler) = c.vals
+
+_json_lower(c::Colorant) = string("#", Colors.hex(c, :auto))
+
 function _json_lower(c::ColorScheme)::Vector{Tuple{Float64,String}}
     N = length(c.colors)
     map(ic -> ((ic[1] - 1) / (N - 1), _json_lower(ic[2])), enumerate(c.colors))
