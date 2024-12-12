@@ -6,6 +6,7 @@ using DocStringExtensions
 using UUIDs
 using Dates
 using Logging
+using Colors
 using ColorSchemes
 using Parameters
 
@@ -159,7 +160,6 @@ function __init__()
     @require IJulia="7073ff75-c697-5162-941a-fcdaad2a7d2a" include("../ext/IJuliaExt.jl")
     @require DataFrames="a93c6f00-e57d-5684-b7b6-d8193f3e46c0" include("../ext/DataFramesExt.jl")
     @require Distributions="31c24e10-a181-5473-b8eb-7969acd0382f" include("../ext/DistributionsExt.jl")
-    @require Colors="5ae59095-9a9b-59fe-a467-6f913c188581" include("../ext/ColorsExt.jl")
     @require JSON3="0f8b85d8-7281-11e9-16c2-39a750bddbf1" include("../ext/JSON3Ext.jl")
 end
 end # @static
