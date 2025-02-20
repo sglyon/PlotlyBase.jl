@@ -120,7 +120,7 @@ Update `l` using update dict and/or kwargs
 """
 function relayout!(l::Layout, update::AbstractDict=Dict(); kwargs...)
     merge!(l.fields, update)  # apply updates in the dict w/out `_` processing
-    merge!(l, Layout(;kwargs...))
+    foreach(x -> setindex!(l, x[2], x[1]), kwargs)
     l
 end
 
@@ -220,7 +220,7 @@ restyle!
 
 function update!(
         p::Plot, ind::Union{AbstractVector{Int},Int},
-        update::AbstractDict=Dict(); layout::Layout=Layout(),
+        update::AbstractDict=Dict(); layout::Layout=p.layout,
         kwargs...
     )
     relayout!(p; layout.fields...)
@@ -228,7 +228,7 @@ function update!(
     p
 end
 
-function update!(p::Plot, update=Dict(); layout::Layout=Layout(), kwargs...)
+function update!(p::Plot, update=Dict(); layout::Layout=p.layout, kwargs...)
     update!(p, 1:length(p.data), update; layout=layout, kwargs...)
 end
 
