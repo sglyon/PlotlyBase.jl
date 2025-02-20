@@ -485,6 +485,11 @@ function Base.pop!(gt::HasFields, k1::Symbol, k2::Symbol,
     pop!(d3, k4, Dict())
 end
 
+function Base.delete!(hf::PlotlyBase.HasFields, args...)
+    pop!(hf, args...)
+    return hf
+end
+
 # Function used to have meaningful display of traces and layouts
 function _describe(x::HasFields)
     fields = sort(map(String, collect(keys(x.fields))))
