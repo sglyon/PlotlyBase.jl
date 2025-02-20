@@ -134,8 +134,10 @@ end
 
 Update `p.layout` on using update dict and/or kwargs
 """
-relayout!(p::Plot, args...; kwargs...) =
+function relayout!(p::Plot, args...; kwargs...)
     relayout!(p.layout, args...; kwargs...)
+    p
+end
 
 """
     restyle!(gt::GenericTrace, i::Int=1, update::AbstractDict=Dict(); kwargs...)
@@ -151,8 +153,10 @@ restyle!(gt::GenericTrace, i::Int=1, update::AbstractDict=Dict(); kwargs...) =
 
 Update `p.data[ind]` using update dict and/or kwargs
 """
-restyle!(p::Plot, ind::Int, update::AbstractDict=Dict(); kwargs...) =
+function restyle!(p::Plot, ind::Int, update::AbstractDict=Dict(); kwargs...)
     restyle!(p.data[ind], 1, update; kwargs...)
+    p
+end
 
 """
     restyle!(::Plot, ::AbstractVector{Int}, ::AbstractDict=Dict(); kwargs...)
@@ -172,6 +176,7 @@ function restyle!(p::Plot, inds::AbstractVector{Int},
     end
 
     map((ind, i) -> restyle!(p.data[ind], i, update; kw...), inds, 1:N)
+    p
 end
 
 """
@@ -309,7 +314,10 @@ update!
 
 Add trace(s) to the end of the Plot's array of data
 """
-addtraces!(p::Plot, traces::AbstractTrace...) = push!(p.data, traces...)
+function addtraces!(p::Plot, traces::AbstractTrace...)
+    push!(p.data, traces...)
+    p
+end
 
 """
     addtraces!(p::Plot, i::Int, traces::AbstractTrace...)
@@ -321,6 +329,7 @@ The new traces will start at index `p.data[i]`
 function addtraces!(p::Plot, i::Int, traces::AbstractTrace...)
     new_data = vcat(p.data[1:i - 1], traces..., p.data[i:end])
     p.data = new_data
+    p
 end
 
 """
@@ -328,16 +337,22 @@ end
 
 Remove the traces at the specified indices
 """
-deletetraces!(p::Plot, inds::Int...) =
-    (p.data = p.data[setdiff(1:length(p.data), inds)])
+function deletetraces!(p::Plot, inds::Int...)
+    deleteat!(p.data, inds)
+    p
+end
 
 """
     movetraces!(p::Plot, to_end::Int...)
 
 Move one or more traces to the end of the data array"
 """
-movetraces!(p::Plot, to_end::Int...) =
-    (p.data = p.data[vcat(setdiff(1:length(p.data), to_end), to_end...)])
+function movetraces!(p::Plot, to_end::Int...)
+    ii = collect(to_end)
+    x = p.data[ii]
+    append!(deleteat!(p.data, ii), x)
+    p
+end
 
 function _move_one!(x::AbstractArray, from::Int, to::Int)
     el = splice!(x, from)  # extract the element
@@ -352,23 +367,25 @@ Move traces from indices `src` to indices `dest`.
 
 Both `src` and `dest` must be `Vector{Int}`
 """
-movetraces!(p::Plot, src::AbstractVector{Int}, dest::AbstractVector{Int}) =
-    (map((i, j) -> _move_one!(p.data, i, j), src, dest); p)
+function movetraces!(p::Plot, src::AbstractVector{Int}, dest::AbstractVector{Int})
+    map((i, j) -> _move_one!(p.data, i, j), src, dest)
+    p
+end
 
 function purge!(p::Plot)
     empty!(p.data)
     p.layout = Layout()
-    nothing
+    p
 end
 
 function react!(p::Plot, data::AbstractVector{<:AbstractTrace}, layout::Layout)
     p.data = data
     p.layout = layout
-    nothing
+    p
 end
 
 # no-op here
-redraw!(p::Plot) = nothing
+redraw!(p::Plot) = p
 to_image(p::Plot; kwargs...) = nothing
 download_image(p::Plot; kwargs...) = nothing
 
@@ -412,9 +429,10 @@ function extendtraces!(p::Plot, update::AbstractDict, indices::AbstractVector{In
         tr = p.data[p_ix]
         for k in keys(update)
             v = update[k][ix]
-            tr[k] = push!(tr[k], v...)
+            tr[k] = vcat(tr[k], v)
         end
     end
+    p
 end
 
 """
@@ -435,6 +453,7 @@ function prependtraces!(p::Plot, update::AbstractDict, indices::AbstractVector{I
             tr[k] = vcat(v, tr[k])
         end
     end
+    p
 end
 
 
@@ -458,7 +477,6 @@ for f in [:restyle, :relayout, :update, :addtraces, :deletetraces,
     @eval function $(f)(p::Plot, args...; kwargs...)
         out = fork(p)
         $(f!)(out, args...; kwargs...)
-        out
     end
 end
 
@@ -684,38 +702,51 @@ function _add_many_layout_objects!(
         push!(layout_vec, new_val)
     end
     l[layout_key] = layout_vec
+    l
 end
 
-_add_many_layout_objects!(p::Plot, args...) = _add_many_layout_objects!(p.layout, args...)
+function _add_many_layout_objects!(p::Plot, args...)
+    _add_many_layout_objects!(p.layout, args...)
+    p
+end
 _add_many_shapes!(l::Layout, args...) = _add_many_layout_objects!(l, args..., :shapes)
-_add_many_shapes!(p::Plot, args...) = _add_many_shapes!(p.layout, args...)
+function _add_many_shapes!(p::Plot, args...)
+    _add_many_shapes!(p.layout, args...)
+    p
+end
 
 function add_hrect!(l::Union{Plot,Layout}, y0, y1; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
     base_shape = rect(0, 1, y0, y1; kw...)
     _add_many_shapes!(l, base_shape, 'h', row, col)
+    l
 end
 
 function add_hline!(l::Union{Plot,Layout}, y; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
     base_shape = hline(y; kw...)
     _add_many_shapes!(l, base_shape, 'h', row, col)
+    l
 end
 
 function add_vrect!(l::Union{Plot,Layout}, x0, x1; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
     base_shape = rect(x0, x1, 0, 1; kw...)
     _add_many_shapes!(l, base_shape, 'v', row, col)
+    l
 end
 
 function add_vline!(l::Union{Plot,Layout}, x; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all", kw...)
     base_shape = vline(x; kw...)
     _add_many_shapes!(l, base_shape, 'v', row, col)
+    l
 end
 
 function add_shape!(l::Union{Plot,Layout}, base_shape; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all")
     _add_many_shapes!(l, base_shape, 'X', row, col)
+    l
 end
 
 function add_layout_image!(l::Union{Plot,Layout}, base_img; row::ROW_COL_TYPE="all", col::ROW_COL_TYPE="all")
     _add_many_layout_objects!(l, base_img, 'I', row, col, :images)
+    l
 end
 
 export add_hrect!, add_hline!, add_vrect!, add_vline!, add_shape!, add_layout_image!
