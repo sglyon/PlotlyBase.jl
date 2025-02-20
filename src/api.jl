@@ -385,7 +385,7 @@ function react!(p::Plot, data::AbstractVector{<:AbstractTrace}, layout::Layout)
 end
 
 # no-op here
-redraw!(p::Plot) = nothing
+redraw!(p::Plot) = p
 to_image(p::Plot; kwargs...) = nothing
 download_image(p::Plot; kwargs...) = nothing
 
@@ -429,7 +429,7 @@ function extendtraces!(p::Plot, update::AbstractDict, indices::AbstractVector{In
         tr = p.data[p_ix]
         for k in keys(update)
             v = update[k][ix]
-            tr[k] = push!(tr[k], v...)
+            tr[k] = vcat(tr[k], v)
         end
     end
     p
@@ -477,7 +477,6 @@ for f in [:restyle, :relayout, :update, :addtraces, :deletetraces,
     @eval function $(f)(p::Plot, args...; kwargs...)
         out = fork(p)
         $(f!)(out, args...; kwargs...)
-        out
     end
 end
 
