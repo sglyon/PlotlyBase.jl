@@ -168,7 +168,7 @@ hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
 # ---------------------------------------- #
 
 const HasFields = Union{GenericTrace,Layout,Shape,PlotlyAttribute,PlotlyFrame}
-const _LikeAssociative = Union{PlotlyAttribute,AbstractDict}
+const _LikeAssociative = Union{AbstractPlotlyAttribute,AbstractDict}
 
 _symbol_dict(hf::HasFields) = _symbol_dict(hf.fields)
 
@@ -199,6 +199,12 @@ _UNDERSCORE_ATTRS = collect(
 ) =#
 const _UNDERSCORE_ATTRS = [:error_x, :copy_ystyle, :error_z, :plot_bgcolor,
                            :paper_bgcolor, :copy_zstyle, :error_y, :hr_name]
+
+# attributes that could be dictionaries and should be recursively processed with nested attr() logic
+const _ASSOCIATIVE_ATTRS = [:geojson, :labelalias]
+
+_is_assoc_attr_value(key, val) =
+    in(Symbol(key), _ASSOCIATIVE_ATTRS) && isa(val, AbstractDict)
 
 _isempty(x) = isempty(x)
 _isempty(::Union{Nothing,Missing}) = true
@@ -251,17 +257,23 @@ Base.iterate(hf::HasFields, x) = iterate(hf.fields, x)
 
 # NOTE: there is another method in dataframes_api.jl
 _obtain_setindex_val(container::Any, val::Any, key::_Maybe{Symbol}=missing) = val
+# Ref is used to wrap _LikeAssociative values to prevent them from being treated as nested keys
+_obtain_setindex_val(container::Any, val::Ref, key::_Maybe{Symbol}=missing) = val[]
 _obtain_setindex_val(container::Dict, val::Any, key::_Maybe{Symbol}=missing) = haskey(container, val) ? container[val] : val
 _obtain_setindex_val(container::Any, func::Function, key::_Maybe{Symbol}=missing) = func(container)
 _obtain_setindex_val(container::Missing, func::Function, key::_Maybe{Symbol}=missing) = func
 
 # no container
-Base.setindex!(gt::HasFields, val, key::String...) = setindex!(gt, val, missing, key...)
+Base.setindex!(gt::HasFields, val::Any, key::String...) = setindex!(gt, val, missing, key...)
+# resolve ambiguity
+Base.setindex!(gt::HasFields, val::_LikeAssociative, key::String...) = setindex!(gt, val, missing, key...)
 
 # methods that allow you to do `obj["first.second.third"] = val`
 function Base.setindex!(gt::HasFields, val, container, key::String)
     if in(Symbol(key), _UNDERSCORE_ATTRS)
         return gt.fields[Symbol(key)] = _obtain_setindex_val(container, val)
+    elseif _is_assoc_attr_value(key, val)
+        return gt.fields[Symbol(key)] = val
     else
         return setindex!(gt, val, container, map(Symbol, split(key, ['.', '_']))...)
     end
@@ -356,7 +368,7 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, key::Sy
         end
     end
 
-    if key === :geojson
+    if _is_assoc_attr_value(key, val)
         gt.fields[key] = val
         return
     end
@@ -366,17 +378,15 @@ function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, key::Sy
     end
 end
 
-function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, k1::Symbol,
-                        k2::Symbol)
-    for (k, v) in val
-        setindex!(gt, v, container, k1, k2, k)
-    end
-end
-
-function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, k1::Symbol,
-                        k2::Symbol, k3::Symbol)
-    for (k, v) in val
-        setindex!(gt, v, container, k1, k2, k3, k)
+function Base.setindex!(gt::HasFields, val::_LikeAssociative, container, key::Symbol...)
+    if _is_assoc_attr_value(last(key), val)
+        # wrap in Ref to protect from treating as nested key-value pairs
+        setindex!(gt, Ref(val), container, key...)
+    else
+        # expand val into nested key-value pairs
+        for (k, v) in val
+            setindex!(gt, v, container, key..., Symbol(k))
+        end
     end
 end
 
