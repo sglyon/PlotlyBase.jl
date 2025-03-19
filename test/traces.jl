@@ -215,6 +215,24 @@ end
 
     # error on 5 levels
     @test_throws MethodError gt["marker.colorbar.tickfont.family.foo"] = :bar
+
+    @testset "_ASSOCIATIVE_ATTRS" begin
+        axis = attr(type = "category", categoryorder = "array", categoryarray = ["a", "b", "c"],
+                    labelalias = Dict("a" => "A", "b" => "B", "c" => "C"))
+        # associative attributes can have Dictionary values, and are exempt from nest attr() logic
+        @test haskey(axis, :labelalias)
+        @test axis["labelalias"] isa Dict
+        axis[:labelalias] = Dict("a" => "apple", "b" => "banana", "c" => "cherry")
+        @test !haskey(axis[:labelalias], :a)
+        @test axis[:labelalias]["a"] == "apple"
+
+        geotrace = scattergeo(geojson = Dict("a" => 1, "b" => "x"))
+        @test haskey(geotrace, :geojson)
+        @test geotrace[:geojson] isa Dict
+
+        # assigning dicts with string keys to anything else is an error
+        @test_throws MethodError scatter(marker = Dict("a" => 1, "b" => "x"))
+    end
 end
 
 @testset "testing underscore constructor" begin
