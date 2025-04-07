@@ -6,7 +6,7 @@ isdefined(Base, :get_extension) ? (using DocStringExtensions) : (using ..DocStri
 
 import PlotlyBase: _Maybe, PlotlyAttribute, _TRACE_TYPES,
                    GenericTrace, Plot, setifempty!, _isempty, _obtain_setindex_val,
-                   _get_default_seq
+                   _get_default_seq, _symbol_dict
 
 using Base:Symbol
 # utilities
