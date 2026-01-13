@@ -246,7 +246,7 @@ end  # function
 function savejson(p::Plot, fn::AbstractString)
     ext = split(fn, ".")[end]
     if ext == "json"
-        open(f -> print(f, json(p)), fn, "w")
+        open(f -> print(f, JSON.json(p)), fn, "w")
         return p
     else
         msg = "PlotlyBase can only save figures as JSON. For all other"
@@ -264,7 +264,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", p::Plot)
     println(io, """
-    data: $(json(map(_describe, p.data), 2))
+    data: $(JSON.json(map(_describe, p.data), 2))
     layout: "$(_describe(p.layout))"
     """)
 end
