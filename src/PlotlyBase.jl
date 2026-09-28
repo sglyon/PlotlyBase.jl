@@ -25,6 +25,8 @@ export @L_str
 using Pkg.Artifacts
 
 # export some names from JSON
+# (JSON 1 marks `json` as public but does not export it)
+using JSON: json
 export json
 
 _symbol_dict(x) = x

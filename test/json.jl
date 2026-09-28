@@ -11,4 +11,6 @@ using PlotlyBase.JSON, JSON3
     @test JSON.json(gt) == JSON3.write(gt)
     @test JSON.json(pplot) == JSON3.write(pplot)    
     @test JSON.json(layout) == JSON3.write(layout)
+    # `json` is the name that PlotlyBase exports
+    @test json(pplot) == JSON.json(pplot)
 end
