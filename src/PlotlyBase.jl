@@ -22,7 +22,7 @@ using DelimitedFiles: readdlm
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
 export @L_str
-using Pkg.Artifacts
+using Artifacts
 
 # export some names from JSON
 # (JSON 1 marks `json` as public but does not export it)
