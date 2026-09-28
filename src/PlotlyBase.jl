@@ -22,14 +22,24 @@ using DelimitedFiles: readdlm
 # import LaTeXStrings and export the handy macros
 using LaTeXStrings
 export @L_str
-using Pkg.Artifacts
+using Artifacts
 
 # export some names from JSON
+# (JSON 1 marks `json` as public but does not export it)
+using JSON: json
 export json
 
 _symbol_dict(x) = x
-_symbol_dict(d::AbstractDict) =
-    Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
+# Fill the Dict in a loop: collecting a generator of `(key, value)` tuples widens the
+# tuple eltype value by value, which compiles a dozen `collect_to!` and
+# `setindex_widen_up_to` methods for each input dict type.
+function _symbol_dict(d::AbstractDict)
+    out = Dict{Symbol,Any}()
+    for (k, v) in d
+        out[Symbol(k)] = _symbol_dict(v)
+    end
+    return out
+end
 
 const _Maybe{T} = Union{Missing,T}
 

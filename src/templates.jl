@@ -129,6 +129,10 @@ function Base.getindex(tc::_TemplatesConfig, k::Symbol)
     return _load_template(String(k))
 end
 function Base.getindex(tc::_TemplatesConfig, k::String)
+    # A single name, like `templates[templates.default]` in every `Layout()`, needs no
+    # merge: return the template itself, and do not compile
+    # `reduce(merge, ::Vector{Template})`.
+    occursin('+', k) || return tc[Symbol(strip(k))]
     parts = strip.(split(k, "+"))
     reduce(merge, getindex.(Ref(tc), Symbol.(parts)))
 end
