@@ -29,7 +29,7 @@ export json
 
 _symbol_dict(x) = x
 _symbol_dict(d::AbstractDict) =
-    Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
+    JSON.Object{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
 
 const _Maybe{T} = Union{Missing,T}
 
@@ -39,7 +39,7 @@ mutable struct PlotlyAttribute{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyA
     fields::T
 end
 
-const _ATTR = PlotlyAttribute{Dict{Symbol,Any}}
+const _ATTR = PlotlyAttribute{JSON.Object{Symbol,Any}}
 
 struct Cycler
     vals::Vector
@@ -103,7 +103,7 @@ include("colors.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;config::PlotConfig=PlotConfig())
-    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config)
+    Plot(GenericTrace{JSON.Object{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config)
 end
 
 function Plot(data::AbstractVector{<:AbstractTrace}, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];

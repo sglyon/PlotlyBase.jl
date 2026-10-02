@@ -40,7 +40,7 @@ Configuration options to be sent to the frontend to control aspects of how the p
 end
 
 function JSON.lower(pc::PlotConfig)
-    out = Dict{Symbol,Any}()
+    out = JSON.Object{Symbol,Any}()
     for fn in fieldnames(PlotConfig)
         field = getfield(pc, fn)
         if !isnothing(field)

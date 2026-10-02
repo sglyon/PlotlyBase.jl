@@ -6,8 +6,8 @@ JSON.lower(c::Cycler) = c.vals
 _json_lower(x) = JSON.lower(x)
 _json_lower(x::Union{Bool,String,Number,Nothing,Missing}) = x
 _json_lower(x::Union{Tuple,AbstractArray}) = _json_lower.(x)
-_json_lower(d::Dict) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(d))
-_json_lower(a::HasFields) = Dict{Any,Any}(k => _json_lower(v) for (k, v) in pairs(a.fields))
+_json_lower(d::AbstractDict) = JSON.Object{Any,Any}(k => _json_lower(v) for (k, v) in pairs(d))
+_json_lower(a::HasFields) = JSON.Object{Any,Any}(k => _json_lower(v) for (k, v) in pairs(a.fields))
 _json_lower(c::Cycler) = c.vals
 
 _json_lower(c::Colorant) = string("#", Colors.hex(c, :auto))
@@ -47,7 +47,7 @@ function _maybe_set_attr!(p::Plot, k::Symbol, v::Cycler)
 end
 
 function JSON.lower(p::Plot)
-    out = Dict(
+    out = JSON.Object{Symbol,Any}(
         :data => _json_lower(p.data),
         :layout => _json_lower(p.layout),
         :frames => _json_lower(p.frames),
@@ -64,7 +64,7 @@ end
 Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot,PlotConfig}) = print(io, JSON.json(a))
 Base.print(io::IO, a::Vector{T}) where {T <: GenericTrace} = print(io, JSON.json(a))
 
-GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(pop!(d, :type, "scatter"), d)
+GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(_dictpop!(d, :type, "scatter"), d)
 GenericTrace(d::AbstractDict{T}) where {T <: AbstractString} = GenericTrace(_symbol_dict(d))
 Layout(d::AbstractDict{T}) where {T <: AbstractString} = Layout(_symbol_dict(d))
 

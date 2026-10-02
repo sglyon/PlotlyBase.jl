@@ -3,7 +3,7 @@
     data::Dict{Symbol,Vector{_ATTR}} = Dict()
     layout::PlotlyAttribute = attr()
 end
-_json_lower(t::Template) = Dict(
+_json_lower(t::Template) = JSON.Object{Symbol,Any}(
     :data => _json_lower(t.data),
     :layout => _json_lower(t.layout)
 )

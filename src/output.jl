@@ -99,7 +99,7 @@ function to_html(
     jlayout = js[:layout]
     jframes = js[:frames]
     jconfig = js[:config]
-    get!(jconfig, :responsive, true)
+    _get!(jconfig, :responsive, true)
 
     # extract width and height from layout
     div_width = get(p.layout, :width, default_width)
@@ -111,9 +111,9 @@ function to_html(
         url = ismissing(p.config.plotlyServerURL) ? "https://plot.ly" : p.config.plotlyServerURL
         base_url_line = "window.PLOTLYENV.BASE_URL = '$url';\n"
     else
-        pop!(jconfig, :plotlyServerURL, missing)
-        pop!(jconfig, :linkText, missing)
-        pop!(jconfig, :showLink, missing)
+        _pop!(jconfig, :plotlyServerURL, missing)
+        _pop!(jconfig, :linkText, missing)
+        _pop!(jconfig, :showLink, missing)
     end
 
     # build script body

@@ -34,7 +34,7 @@ end
     f = M.frame(;name="test")
     times20 = attr(name="Times", size=20)
     f[:xaxis_titlefont] = times20
-    @test isa(f[:xaxis], Dict)
+    @test isa(f[:xaxis], JSON.Object)
     @test f[:xaxis][:titlefont][:name] == "Times"
     @test f[:xaxis][:titlefont][:size] == 20
 end
@@ -59,7 +59,7 @@ end
     f[:line, :color] = "red"
     @test length(f.fields) == 5
     @test haskey(f.fields, :line)
-    @test isa(f.fields[:line], Dict)
+    @test isa(f.fields[:line], JSON.Object)
     @test f.fields[:line][:color] == "red"
     @test f["line.color"] == "red"
 
@@ -67,7 +67,7 @@ end
     f["line", "color"] = "blue"
     @test length(f.fields) == 5
     @test haskey(f.fields, :line)
-    @test isa(f.fields[:line], Dict)
+    @test isa(f.fields[:line], JSON.Object)
     @test f.fields[:line][:color] == "blue"
     @test f["line_color"] == "blue"
 
@@ -75,7 +75,7 @@ end
     f["line.color"] = "green"
     @test length(f.fields) == 5
     @test haskey(f.fields, :line)
-    @test isa(f.fields[:line], Dict)
+    @test isa(f.fields[:line], JSON.Object)
     @test f.fields[:line][:color] == "green"
     @test f[:line_color] == "green"
 
@@ -83,7 +83,7 @@ end
     f[:(line_color)] = "orange"
     @test length(f.fields) == 5
     @test haskey(f.fields, :line)
-    @test isa(f.fields[:line], Dict)
+    @test isa(f.fields[:line], JSON.Object)
     @test f.fields[:line][:color] == "orange"
     @test f["line.color"] == "orange"
 
@@ -91,7 +91,7 @@ end
     f["line_color"] = "magenta"
     @test length(f.fields) == 5
     @test haskey(f.fields, :line)
-    @test isa(f.fields[:line], Dict)
+    @test isa(f.fields[:line], JSON.Object)
     @test f.fields[:line][:color] == "magenta"
     @test f["line.color"] == "magenta"
 
@@ -101,9 +101,9 @@ end
     f[:marker, :line, :color] = "red"
     @test length(f.fields) == 6
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test haskey(f.fields[:marker], :line)
-    @test isa(f.fields[:marker][:line], Dict)
+    @test isa(f.fields[:marker][:line], JSON.Object)
     @test haskey(f.fields[:marker][:line], :color)
     @test f.fields[:marker][:line][:color] == "red"
     @test f["marker.line.color"] == "red"
@@ -112,9 +112,9 @@ end
     f["marker", "line", "color"] = "blue"
     @test length(f.fields) == 6
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test haskey(f.fields[:marker], :line)
-    @test isa(f.fields[:marker][:line], Dict)
+    @test isa(f.fields[:marker][:line], JSON.Object)
     @test haskey(f.fields[:marker][:line], :color)
     @test f.fields[:marker][:line][:color] == "blue"
     @test f["marker.line.color"] == "blue"
@@ -123,9 +123,9 @@ end
     f["marker.line.color"] = "green"
     @test length(f.fields) == 6
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test haskey(f.fields[:marker], :line)
-    @test isa(f.fields[:marker][:line], Dict)
+    @test isa(f.fields[:marker][:line], JSON.Object)
     @test haskey(f.fields[:marker][:line], :color)
     @test f.fields[:marker][:line][:color] == "green"
     @test f["marker.line.color"] == "green"
@@ -134,9 +134,9 @@ end
     f["marker_line_color"] = "orange"
     @test length(f.fields) == 6
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test haskey(f.fields[:marker], :line)
-    @test isa(f.fields[:marker][:line], Dict)
+    @test isa(f.fields[:marker][:line], JSON.Object)
     @test haskey(f.fields[:marker][:line], :color)
     @test f.fields[:marker][:line][:color] == "orange"
     @test f["marker.line.color"] == "orange"
@@ -145,9 +145,9 @@ end
     f[:(marker_line_color)] = "magenta"
     @test length(f.fields) == 6
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test haskey(f.fields[:marker], :line)
-    @test isa(f.fields[:marker][:line], Dict)
+    @test isa(f.fields[:marker][:line], JSON.Object)
     @test haskey(f.fields[:marker][:line], :color)
     @test f.fields[:marker][:line][:color] == "magenta"
     @test f["marker.line.color"] == "magenta"
@@ -158,12 +158,12 @@ end
     f[:marker, :colorbar, :tickfont, :family] = "Hasklig-ExtraLight"
     @test length(f.fields) == 6  # notice we didn't add another top level key
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test length(f.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(f.fields[:marker], :colorbar)
-    @test isa(f.fields[:marker][:colorbar], Dict)
+    @test isa(f.fields[:marker][:colorbar], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar], :tickfont)
-    @test isa(f.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(f.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar][:tickfont], :family)
     @test f.fields[:marker][:colorbar][:tickfont][:family] == "Hasklig-ExtraLight"
     @test f["marker.colorbar.tickfont.family"] == "Hasklig-ExtraLight"
@@ -172,12 +172,12 @@ end
     f["marker", "colorbar", "tickfont", "family"] = "Hasklig-Light"
     @test length(f.fields) == 6
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test length(f.fields[:marker]) == 2
     @test haskey(f.fields[:marker], :colorbar)
-    @test isa(f.fields[:marker][:colorbar], Dict)
+    @test isa(f.fields[:marker][:colorbar], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar], :tickfont)
-    @test isa(f.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(f.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar][:tickfont], :family)
     @test f.fields[:marker][:colorbar][:tickfont][:family] == "Hasklig-Light"
     @test f["marker.colorbar.tickfont.family"] == "Hasklig-Light"
@@ -186,12 +186,12 @@ end
     f["marker.colorbar.tickfont.family"] = "Hasklig-Medium"
     @test length(f.fields) == 6  # notice we didn't add another top level key
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test length(f.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(f.fields[:marker], :colorbar)
-    @test isa(f.fields[:marker][:colorbar], Dict)
+    @test isa(f.fields[:marker][:colorbar], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar], :tickfont)
-    @test isa(f.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(f.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar][:tickfont], :family)
     @test f.fields[:marker][:colorbar][:tickfont][:family] == "Hasklig-Medium"
     @test f["marker.colorbar.tickfont.family"] == "Hasklig-Medium"
@@ -200,12 +200,12 @@ end
     f["marker_colorbar_tickfont_family"] = "Webdings"
     @test length(f.fields) == 6  # notice we didn't add another top level key
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test length(f.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(f.fields[:marker], :colorbar)
-    @test isa(f.fields[:marker][:colorbar], Dict)
+    @test isa(f.fields[:marker][:colorbar], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar], :tickfont)
-    @test isa(f.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(f.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar][:tickfont], :family)
     @test f.fields[:marker][:colorbar][:tickfont][:family] == "Webdings"
     @test f["marker.colorbar.tickfont.family"] == "Webdings"
@@ -214,12 +214,12 @@ end
     f[:marker_colorbar_tickfont_family] = "Webdings42"
     @test length(f.fields) == 6  # notice we didn't add another top level key
     @test haskey(f.fields, :marker)
-    @test isa(f.fields[:marker], Dict)
+    @test isa(f.fields[:marker], JSON.Object)
     @test length(f.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(f.fields[:marker], :colorbar)
-    @test isa(f.fields[:marker][:colorbar], Dict)
+    @test isa(f.fields[:marker][:colorbar], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar], :tickfont)
-    @test isa(f.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(f.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(f.fields[:marker][:colorbar][:tickfont], :family)
     @test f.fields[:marker][:colorbar][:tickfont][:family] == "Webdings42"
     @test f["marker.colorbar.tickfont.family"] == "Webdings42"

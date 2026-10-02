@@ -6,7 +6,7 @@ mutable struct GenericTrace{T <: AbstractDict{Symbol,Any}} <: AbstractTrace
 end
 
 function GenericTrace(kind::Union{AbstractString,Symbol},
-                      fields=Dict{Symbol,Any}(); kwargs...)
+                      fields=JSON.Object{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
     fields[:type] = kind
     gt = GenericTrace(fields)
@@ -20,8 +20,8 @@ function GenericTrace(kind::Union{AbstractString,Symbol},
 end
 
 function _layout_defaults()
-    Dict{Symbol,Any}(
-        :margin => Dict(:l => 50, :r => 50, :t => 60, :b => 50),
+    JSON.Object{Symbol,Any}(
+        :margin => JSON.Object{Symbol,Any}(:l => 50, :r => 50, :t => 60, :b => 50),
         :template => templates[templates.default],
     )
 end
@@ -31,13 +31,16 @@ mutable struct Layout{T <: AbstractDict{Symbol,Any}} <: AbstractLayout
     subplots::Subplots
 
     function Layout{T}(fields::T; kwargs...) where T
-        l = new{T}(merge(_layout_defaults(), fields), Subplots())
+        # build the merged result directly as T (via key-by-key merge!) instead of
+        # `merge(_layout_defaults(), fields)`, whose return type is not guaranteed to
+        # match T and would need an implicit conversion into T on `new{T}`
+        l = new{T}(merge!(T(), _layout_defaults(), fields), Subplots())
         foreach(x -> setindex!(l, x[2], x[1]), kwargs)
         l
     end
 end
 
-Layout(fields::T=Dict{Symbol,Any}(); kwargs...) where {T <: AbstractDict{Symbol,Any}} =
+Layout(fields::T=JSON.Object{Symbol,Any}(); kwargs...) where {T <: AbstractDict{Symbol,Any}} =
     Layout{T}(fields; kwargs...)
 
 kind(gt::GenericTrace) = get(gt, :type, "scatter")
@@ -47,7 +50,7 @@ kind(l::Layout) = "layout"
 # Specific types of trace or layout attributes #
 # -------------------------------------------- #
 
-function attr(fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)
+function attr(fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
     s = PlotlyAttribute(fields)
     for (k, v) in kwargs
@@ -65,11 +68,11 @@ mutable struct PlotlyFrame{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyAttri
     end
 end
 
-function frame(fields=Dict{Symbol,Any}(); kwargs...)
+function frame(fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...)
     for (k, v) in kwargs
         fields[k] = v
     end
-    PlotlyFrame{Dict{Symbol,Any}}(fields)
+    PlotlyFrame{typeof(fields)}(fields)
 end
 
 abstract type AbstractLayoutAttribute <: AbstractPlotlyAttribute end
@@ -88,7 +91,7 @@ mutable struct Shape <: AbstractLayoutAttribute
     fields::AbstractDict{Symbol}
 end
 
-function Shape(kind::AbstractString, fields=Dict{Symbol,Any}(); kwargs...)
+function Shape(kind::AbstractString, fields=JSON.Object{Symbol,Any}(); kwargs...)
     # use setindex! methods below to handle `_` substitution
     fields[:type] = kind
     s = Shape(fields)
@@ -103,12 +106,12 @@ _rep(x, n) = take(cycle(x), n)
 # them here
 for t in [:line, :circle, :rect]
     str_t = string(t)
-    @eval $t(d::AbstractDict=Dict{Symbol,Any}(), ;kwargs...) =
+    @eval $t(d::AbstractDict=JSON.Object{Symbol,Any}(), ;kwargs...) =
         Shape($str_t, d; kwargs...)
     eval(Expr(:export, t))
 
     @eval function $(t)(x0::_Scalar, x1::_Scalar, y0::_Scalar, y1::_Scalar,
-                        fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)
+                        fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...)
         $(t)(fields; x0=x0, x1=x1, y0=y0, y1=y1, kwargs...)
     end
 
@@ -116,7 +119,7 @@ for t in [:line, :circle, :rect]
                         x1::Union{AbstractVector,_Scalar},
                         y0::Union{AbstractVector,_Scalar},
                         y1::Union{AbstractVector,_Scalar},
-                        fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)
+                        fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...)
         n = reduce(max, map(length, (x0, x1, y0, y1)))
         f(_x0, _x1, _y0, _y1) = $(t)(_x0, _x1, _y0, _y1, copy(fields); kwargs...)
         map(f, _rep(x0, n), _rep(x1, n), _rep(y0, n), _rep(y1, n))
@@ -141,26 +144,26 @@ export path
 
 # derived shapes
 
-vline(x, ymin, ymax, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
+vline(x, ymin, ymax, fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...) =
     line(x, x, ymin, ymax, fields; kwargs...)
 
 """
-`vline(x, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)`
+`vline(x, fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...)`
 
 Draw vertical lines at each point in `x` that span the height of the plot
 """
-vline(x, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
+vline(x, fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...) =
     vline(x, 0, 1, fields; xref="x", yref="paper", kwargs...)
 
-hline(y, xmin, xmax, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
+hline(y, xmin, xmax, fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...) =
     line(xmin, xmax, y, y, fields; kwargs...)
 
 """
-`hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...)`
+`hline(y, fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...)`
 
 Draw horizontal lines at each point in `y` that span the width of the plot
 """
-hline(y, fields::AbstractDict=Dict{Symbol,Any}(); kwargs...) =
+hline(y, fields::AbstractDict=JSON.Object{Symbol,Any}(); kwargs...) =
     hline(y, 0, 1, fields; xref="paper", yref="y", kwargs...)
 
 # ---------------------------------------- #
@@ -305,7 +308,7 @@ function Base.setindex!(gt::HasFields, val, container, key::Symbol)
 end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol)
-    d1 = get(gt.fields, k1, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
     si_val = _obtain_setindex_val(container, val)
     d1[k2] = si_val
     gt.fields[k1] = d1
@@ -313,8 +316,8 @@ function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol)
 end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol, k3::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
     si_val = _obtain_setindex_val(container, val)
     d2[k3] = si_val
     d1[k2] = d2
@@ -324,9 +327,9 @@ end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
                         k3::Symbol, k4::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    d3 = get(d2, k3, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    d3 = get(d2, k3, JSON.Object{Symbol,Any}())
     si_val = _obtain_setindex_val(container, val)
     d3[k4] = si_val
     d2[k3] = d3
@@ -337,10 +340,10 @@ end
 
 function Base.setindex!(gt::HasFields, val, container, k1::Symbol, k2::Symbol,
     k3::Symbol, k4::Symbol, k5::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    d3 = get(d2, k3, Dict())
-    d4 = get(d3, k4, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    d3 = get(d2, k3, JSON.Object{Symbol,Any}())
+    d4 = get(d3, k4, JSON.Object{Symbol,Any}())
     si_val = _obtain_setindex_val(container, val)
     d4[k5] = si_val
     d3[k4] = d4
@@ -417,35 +420,35 @@ function Base.getindex(gt::HasFields, key::Symbol)
             return getindex(gt, string(key))
         end
     end
-    get(gt.fields, key, Dict())
+    get(gt.fields, key, JSON.Object{Symbol,Any}())
 end
 
 function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    get(d1, k2, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    get(d1, k2, JSON.Object{Symbol,Any}())
 end
 
 function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol, k3::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    get(d2, k3, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    get(d2, k3, JSON.Object{Symbol,Any}())
 end
 
 function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
                        k3::Symbol, k4::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    d3 = get(d2, k3, Dict())
-    get(d3, k4, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    d3 = get(d2, k3, JSON.Object{Symbol,Any}())
+    get(d3, k4, JSON.Object{Symbol,Any}())
 end
 
 function Base.getindex(gt::HasFields, k1::Symbol, k2::Symbol,
     k3::Symbol, k4::Symbol, k5::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    d3 = get(d2, k3, Dict())
-    d4 = get(d3, k4, Dict())
-    get(d4, k5, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    d3 = get(d2, k3, JSON.Object{Symbol,Any}())
+    d4 = get(d3, k4, JSON.Object{Symbol,Any}())
+    get(d4, k5, JSON.Object{Symbol,Any}())
 end
 
 function Base.getproperty(gt::HF, p::Symbol) where HF <: HasFields
@@ -456,9 +459,58 @@ function Base.getproperty(gt::HF, p::Symbol) where HF <: HasFields
 end
 
 # Now to the pop! methods
+# NOTE: not every AbstractDict (e.g. JSON.Object) implements `pop!`/`get!` itself, so we
+# implement the get-and-remove (and get-or-set) semantics ourselves on top of
+# `haskey`/`getindex`/`setindex!`/`delete!`, which every AbstractDict does support
+_pop!(d::AbstractDict, key) = (v = d[key]; delete!(d, key); v)
+_pop!(d::AbstractDict, key, default) = haskey(d, key) ? _pop!(d, key) : default
+_get!(d::AbstractDict, key, default) = haskey(d, key) ? d[key] : (d[key] = default)
+
+# and we define efficient methods for JSON.Object
+function _pop!(obj::JSON.Object{K,V}, key::K) where {K,V}
+    ch = JSON._ch(obj)
+    ch === JSON.notset && throw(KeyError(key))  # empty object
+
+    parent = obj
+    node = ch
+    while true
+        if JSON._k(node) !== JSON.notset && isequal(JSON._k(node)::K, key)
+            v = JSON._v(node)::V
+            # splice node out: parent's child becomes node's child
+            nch = JSON._ch(node)
+            setfield!(parent, :child, nch === JSON.notset ? JSON.notset : nch)
+            return v
+        end
+        nxt = JSON._ch(node)
+        nxt === JSON.notset && throw(KeyError(key))
+        parent = node
+        node = nxt::JSON.Object{K,V}
+    end
+end
+
+function _pop!(obj::JSON.Object{K,V}, key::K, default) where {K,V}
+    ch = JSON._ch(obj)
+    ch === JSON.notset && return default  # empty object
+
+    parent = obj
+    node = ch
+    while true
+        if JSON._k(node) !== JSON.notset && isequal(JSON._k(node)::K, key)
+            v = JSON._v(node)::V
+            nch = JSON._ch(node)
+            setfield!(parent, :child, nch === JSON.notset ? JSON.notset : nch)
+            return v
+        end
+        nxt = JSON._ch(node)
+        nxt === JSON.notset && return default
+        parent = node
+        node = nxt::JSON.Object{K,V}
+    end
+end
+
 function Base.pop!(gt::HasFields, key::String)
     if in(Symbol(key), _UNDERSCORE_ATTRS)
-        pop!(gt.fields, Symbol(key))
+        _pop!(gt.fields, Symbol(key))
     else
         pop!(gt, map(Symbol, split(key, ['.', '_']))...)
     end
@@ -473,26 +525,26 @@ function Base.pop!(gt::HasFields, key::Symbol)
             return pop!(gt, string(key))
         end
     end
-    pop!(gt.fields, key, Dict())
+    _pop!(gt.fields, key, JSON.Object{Symbol,Any}())
 end
 
 function Base.pop!(gt::HasFields, k1::Symbol, k2::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    pop!(d1, k2, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    _pop!(d1, k2, JSON.Object{Symbol,Any}())
 end
 
 function Base.pop!(gt::HasFields, k1::Symbol, k2::Symbol, k3::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    pop!(d2, k3, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    _pop!(d2, k3, JSON.Object{Symbol,Any}())
 end
 
 function Base.pop!(gt::HasFields, k1::Symbol, k2::Symbol,
                        k3::Symbol, k4::Symbol)
-    d1 = get(gt.fields, k1, Dict())
-    d2 = get(d1, k2, Dict())
-    d3 = get(d2, k3, Dict())
-    pop!(d3, k4, Dict())
+    d1 = get(gt.fields, k1, JSON.Object{Symbol,Any}())
+    d2 = get(d1, k2, JSON.Object{Symbol,Any}())
+    d3 = get(d2, k3, JSON.Object{Symbol,Any}())
+    _pop!(d3, k4, JSON.Object{Symbol,Any}())
 end
 
 function Base.delete!(hf::PlotlyBase.HasFields, args...)
