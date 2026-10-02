@@ -1,6 +1,6 @@
 [plotly-base-artifacts]
-git-tree-sha1 = "6911b15701b79c579653c4e55b24a659e5220efe"
+git-tree-sha1 = "7d71c51782253b7f5736832134a08ca2bdb9a092"
 
     [[plotly-base-artifacts.download]]
-    sha256 = "2b3649d13bb3af0188b1b0de202e2f448e1e4aa4f21de726215e95fc44ad5abc"
-    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/plotly-base-artifacts-2.35.3/plotly-base-artifacts-2.35.3.tar.gz"
+    sha256 = "2cff138b6e71ed250a1d7aa4149ac6014430e23d7dad409e6b3cae58150ffff5"
+    url = "https://github.com/sglyon/PlotlyBase.jl/releases/download/plotly-base-artifacts-4.1.1/plotly-base-artifacts-4.1.1.tar.gz"
