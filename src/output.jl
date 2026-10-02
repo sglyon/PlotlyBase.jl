@@ -99,7 +99,7 @@ function to_html(
     jlayout = js[:layout]
     jframes = js[:frames]
     jconfig = js[:config]
-    _get!(jconfig, :responsive, true)
+    get!(jconfig, :responsive, true)
 
     # extract width and height from layout
     div_width = get(p.layout, :width, default_width)

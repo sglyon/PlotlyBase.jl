@@ -459,12 +459,12 @@ function Base.getproperty(gt::HF, p::Symbol) where HF <: HasFields
 end
 
 # Now to the pop! methods
-# NOTE: not every AbstractDict (e.g. JSON.Object) implements `pop!`/`get!` itself, so we
-# implement the get-and-remove (and get-or-set) semantics ourselves on top of
-# `haskey`/`getindex`/`setindex!`/`delete!`, which every AbstractDict does support
+# NOTE: unlike get!, Base provides no generic AbstractDict fallback for pop!, and not
+# every AbstractDict (e.g. JSON.Object) implements it itself, so we implement the
+# get-and-remove semantics ourselves on top of `haskey`/`getindex`/`delete!`, which
+# every AbstractDict does support
 _pop!(d::AbstractDict, key) = (v = d[key]; delete!(d, key); v)
 _pop!(d::AbstractDict, key, default) = haskey(d, key) ? _pop!(d, key) : default
-_get!(d::AbstractDict, key, default) = haskey(d, key) ? d[key] : (d[key] = default)
 
 # and we define efficient methods for JSON.Object
 function _pop!(obj::JSON.Object{K,V}, key::K) where {K,V}
