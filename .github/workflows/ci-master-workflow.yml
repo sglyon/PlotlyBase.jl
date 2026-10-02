@@ -17,16 +17,16 @@ jobs:
         julia-version:
           - "1.10"
           - "1"
-        julia-arch: [x64]
+        julia-arch: [default]
         os: [ubuntu-latest, windows-latest, macOS-latest]
         include:
           # smoke-test the minimum supported Julia version (see `julia` compat
           # in Project.toml) on a single OS rather than the full matrix
           - julia-version: "1.9"
-            julia-arch: x64
+            julia-arch: default
             os: ubuntu-latest
           - julia-version: "nightly"
-            julia-arch: x64
+            julia-arch: default
             os: ubuntu-latest
 
     steps:
