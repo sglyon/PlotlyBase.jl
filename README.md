@@ -1,10 +1,8 @@
 # PlotlyBase
 
-[![Build Status](https://travis-ci.org/sglyon/PlotlyBase.jl.svg?branch=master)](https://travis-ci.org/sglyon/PlotlyBase.jl)
+[![Build Status](https://github.com/sglyon/PlotlyBase.jl/actions/workflows/ci-master-workflow.yml/badge.svg)](https://github.com/sglyon/PlotlyBase.jl/actions/workflows/ci-master-workflow.yml)
 
-[![Coverage Status](https://coveralls.io/repos/sglyon/PlotlyBase.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/sglyon/PlotlyBase.jl?branch=master)
-
-[![codecov.io](http://codecov.io/github/sglyon/PlotlyBase.jl/coverage.svg?branch=master)](http://codecov.io/github/sglyon/PlotlyBase.jl?branch=master)
+[![codecov](https://codecov.io/gh/sglyon/PlotlyBase.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/sglyon/PlotlyBase.jl)
 
 This is the plot making guts of [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl)
 
