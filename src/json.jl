@@ -64,16 +64,24 @@ end
 Base.print(io::IO, a::Union{Shape,GenericTrace,PlotlyAttribute,Layout,Plot,PlotConfig}) = print(io, JSON.json(a))
 Base.print(io::IO, a::Vector{T}) where {T <: GenericTrace} = print(io, JSON.json(a))
 
-GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(_dictpop!(d, :type, "scatter"), d)
+GenericTrace(d::AbstractDict{Symbol}) = GenericTrace(_pop!(d, :type, "scatter"), d)
 GenericTrace(d::AbstractDict{T}) where {T <: AbstractString} = GenericTrace(_symbol_dict(d))
 Layout(d::AbstractDict{T}) where {T <: AbstractString} = Layout(_symbol_dict(d))
+PlotlyFrame(d::AbstractDict{Symbol}) = PlotlyFrame{typeof(d)}(d)
+PlotlyFrame(d::AbstractDict{T}) where {T <: AbstractString} = PlotlyFrame(_symbol_dict(d))
 
-function JSON.parse(::Type{Plot}, str::AbstractString)
-    d = JSON.parse(str)
-    data = GenericTrace[GenericTrace(tr) for tr in d["data"]]
-    layout = Layout(d["layout"])
-    Plot(data, layout)
+# build a Plot from its own JSON.lower(::Plot)-shaped dict (the :data/:layout/:frames/
+# :config keys), e.g. after round-tripping through JSON.parse or an external JS payload
+function Plot(d::AbstractDict)
+    sd = _symbol_dict(d)
+    data = haskey(sd, :data) && !isempty(sd[:data]) ? GenericTrace.(sd[:data]) : GenericTrace[]
+    layout = haskey(sd, :layout) ? Layout(sd[:layout]) : Layout()
+    frames = haskey(sd, :frames) && !isempty(sd[:frames]) ? PlotlyFrame.(sd[:frames]) : PlotlyFrame[]
+    config = haskey(sd, :config) ? PlotConfig(; sd[:config]...) : PlotConfig()
+    Plot(data, layout, frames; config)
 end
+
+JSON.parse(::Type{Plot}, str::AbstractString) = Plot(JSON.parse(str))
 
 JSON.parsefile(::Type{Plot}, fn) =
     open(fn, "r") do f; JSON.parse(Plot, String(read(f))) end
