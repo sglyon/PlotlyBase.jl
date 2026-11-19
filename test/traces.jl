@@ -48,7 +48,7 @@ end
     gt[:line, :color] = "red"
     @test length(gt.fields) == 5
     @test haskey(gt.fields, :line)
-    @test isa(gt.fields[:line], Dict)
+    @test isa(gt.fields[:line], JSON.Object)
     @test gt.fields[:line][:color] == "red"
     @test gt["line.color"] == "red"
 
@@ -56,7 +56,7 @@ end
     gt["line", "color"] = "blue"
     @test length(gt.fields) == 5
     @test haskey(gt.fields, :line)
-    @test isa(gt.fields[:line], Dict)
+    @test isa(gt.fields[:line], JSON.Object)
     @test gt.fields[:line][:color] == "blue"
     @test gt["line_color"] == "blue"
 
@@ -64,7 +64,7 @@ end
     gt["line.color"] = "green"
     @test length(gt.fields) == 5
     @test haskey(gt.fields, :line)
-    @test isa(gt.fields[:line], Dict)
+    @test isa(gt.fields[:line], JSON.Object)
     @test gt.fields[:line][:color] == "green"
     @test gt[:line_color] == "green"
 
@@ -72,7 +72,7 @@ end
     gt[:(line_color)] = "orange"
     @test length(gt.fields) == 5
     @test haskey(gt.fields, :line)
-    @test isa(gt.fields[:line], Dict)
+    @test isa(gt.fields[:line], JSON.Object)
     @test gt.fields[:line][:color] == "orange"
     @test gt["line.color"] == "orange"
 
@@ -80,7 +80,7 @@ end
     gt["line_color"] = "magenta"
     @test length(gt.fields) == 5
     @test haskey(gt.fields, :line)
-    @test isa(gt.fields[:line], Dict)
+    @test isa(gt.fields[:line], JSON.Object)
     @test gt.fields[:line][:color] == "magenta"
     @test gt["line.color"] == "magenta"
 
@@ -90,9 +90,9 @@ end
     gt[:marker, :line, :color] = "red"
     @test length(gt.fields) == 6
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test haskey(gt.fields[:marker], :line)
-    @test isa(gt.fields[:marker][:line], Dict)
+    @test isa(gt.fields[:marker][:line], JSON.Object)
     @test haskey(gt.fields[:marker][:line], :color)
     @test gt.fields[:marker][:line][:color] == "red"
     @test gt["marker.line.color"] == "red"
@@ -101,9 +101,9 @@ end
     gt["marker", "line", "color"] = "blue"
     @test length(gt.fields) == 6
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test haskey(gt.fields[:marker], :line)
-    @test isa(gt.fields[:marker][:line], Dict)
+    @test isa(gt.fields[:marker][:line], JSON.Object)
     @test haskey(gt.fields[:marker][:line], :color)
     @test gt.fields[:marker][:line][:color] == "blue"
     @test gt["marker.line.color"] == "blue"
@@ -112,9 +112,9 @@ end
     gt["marker.line.color"] = "green"
     @test length(gt.fields) == 6
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test haskey(gt.fields[:marker], :line)
-    @test isa(gt.fields[:marker][:line], Dict)
+    @test isa(gt.fields[:marker][:line], JSON.Object)
     @test haskey(gt.fields[:marker][:line], :color)
     @test gt.fields[:marker][:line][:color] == "green"
     @test gt["marker.line.color"] == "green"
@@ -123,9 +123,9 @@ end
     gt["marker_line_color"] = "orange"
     @test length(gt.fields) == 6
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test haskey(gt.fields[:marker], :line)
-    @test isa(gt.fields[:marker][:line], Dict)
+    @test isa(gt.fields[:marker][:line], JSON.Object)
     @test haskey(gt.fields[:marker][:line], :color)
     @test gt.fields[:marker][:line][:color] == "orange"
     @test gt["marker.line.color"] == "orange"
@@ -134,9 +134,9 @@ end
     gt[:(marker_line_color)] = "magenta"
     @test length(gt.fields) == 6
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test haskey(gt.fields[:marker], :line)
-    @test isa(gt.fields[:marker][:line], Dict)
+    @test isa(gt.fields[:marker][:line], JSON.Object)
     @test haskey(gt.fields[:marker][:line], :color)
     @test gt.fields[:marker][:line][:color] == "magenta"
     @test gt["marker.line.color"] == "magenta"
@@ -147,12 +147,12 @@ end
     gt[:marker, :colorbar, :tickfont, :family] = "Hasklig-ExtraLight"
     @test length(gt.fields) == 6  # notice we didn't add another top level key
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test length(gt.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(gt.fields[:marker], :colorbar)
-    @test isa(gt.fields[:marker][:colorbar], Dict)
+    @test isa(gt.fields[:marker][:colorbar], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar], :tickfont)
-    @test isa(gt.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(gt.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar][:tickfont], :family)
     @test gt.fields[:marker][:colorbar][:tickfont][:family] == "Hasklig-ExtraLight"
     @test gt["marker.colorbar.tickfont.family"] == "Hasklig-ExtraLight"
@@ -161,12 +161,12 @@ end
     gt["marker", "colorbar", "tickfont", "family"] = "Hasklig-Light"
     @test length(gt.fields) == 6
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test length(gt.fields[:marker]) == 2
     @test haskey(gt.fields[:marker], :colorbar)
-    @test isa(gt.fields[:marker][:colorbar], Dict)
+    @test isa(gt.fields[:marker][:colorbar], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar], :tickfont)
-    @test isa(gt.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(gt.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar][:tickfont], :family)
     @test gt.fields[:marker][:colorbar][:tickfont][:family] == "Hasklig-Light"
     @test gt["marker.colorbar.tickfont.family"] == "Hasklig-Light"
@@ -175,12 +175,12 @@ end
     gt["marker.colorbar.tickfont.family"] = "Hasklig-Medium"
     @test length(gt.fields) == 6  # notice we didn't add another top level key
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test length(gt.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(gt.fields[:marker], :colorbar)
-    @test isa(gt.fields[:marker][:colorbar], Dict)
+    @test isa(gt.fields[:marker][:colorbar], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar], :tickfont)
-    @test isa(gt.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(gt.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar][:tickfont], :family)
     @test gt.fields[:marker][:colorbar][:tickfont][:family] == "Hasklig-Medium"
     @test gt["marker.colorbar.tickfont.family"] == "Hasklig-Medium"
@@ -189,12 +189,12 @@ end
     gt["marker_colorbar_tickfont_family"] = "Webdings"
     @test length(gt.fields) == 6  # notice we didn't add another top level key
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test length(gt.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(gt.fields[:marker], :colorbar)
-    @test isa(gt.fields[:marker][:colorbar], Dict)
+    @test isa(gt.fields[:marker][:colorbar], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar], :tickfont)
-    @test isa(gt.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(gt.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar][:tickfont], :family)
     @test gt.fields[:marker][:colorbar][:tickfont][:family] == "Webdings"
     @test gt["marker.colorbar.tickfont.family"] == "Webdings"
@@ -203,12 +203,12 @@ end
     gt[:marker_colorbar_tickfont_family] = "Webdings42"
     @test length(gt.fields) == 6  # notice we didn't add another top level key
     @test haskey(gt.fields, :marker)
-    @test isa(gt.fields[:marker], Dict)
+    @test isa(gt.fields[:marker], JSON.Object)
     @test length(gt.fields[:marker]) == 2  # but we did add a key at this level
     @test haskey(gt.fields[:marker], :colorbar)
-    @test isa(gt.fields[:marker][:colorbar], Dict)
+    @test isa(gt.fields[:marker][:colorbar], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar], :tickfont)
-    @test isa(gt.fields[:marker][:colorbar][:tickfont], Dict)
+    @test isa(gt.fields[:marker][:colorbar][:tickfont], JSON.Object)
     @test haskey(gt.fields[:marker][:colorbar][:tickfont], :family)
     @test gt.fields[:marker][:colorbar][:tickfont][:family] == "Webdings42"
     @test gt["marker.colorbar.tickfont.family"] == "Webdings42"
@@ -312,7 +312,7 @@ end
     l = Layout()
     times20 = attr(name="Times", size=20)
     l[:xaxis_titlefont] = times20
-    @test isa(l[:xaxis], Dict)
+    @test isa(l[:xaxis], JSON.Object)
     @test l[:xaxis][:titlefont][:name] == "Times"
     @test l[:xaxis][:titlefont][:size] == 20
 end

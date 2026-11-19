@@ -10,7 +10,7 @@
 # little differently.
 
 
-const _single_subplot_types = Set(["scene", "geo", "polar", "ternary", "mapbox"])
+const _single_subplot_types = Set(["scene", "geo", "polar", "ternary", "mapbox", "map", "smith"])
 const _subplot_types = union(_single_subplot_types, Set(["xy", "domain"]))
 
 # For most subplot types, a trace is associated with a particular subplot
@@ -22,7 +22,7 @@ const _subplot_types = union(_single_subplot_types, Set(["xy", "domain"]))
 # the trace property is just named `subplot`.  For example setting
 # the `scatterpolar.subplot` property to `polar3` associates the scatterpolar
 # trace with the third polar subplot in the figure
-const _subplot_prop_named_subplot = Set(["polar", "ternary", "mapbox"])
+const _subplot_prop_named_subplot = Set(["polar", "ternary", "mapbox", "map", "smith"])
 
 @with_kw struct SubplotRef
     subplot_kind::String
@@ -47,7 +47,9 @@ end
     - 'scene': 3D Cartesian subplot for scatter3d, cone, etc.
     - 'polar': Polar subplot for scatterpolar, barpolar, etc.
     - 'ternary': Ternary subplot for scatterternary
-    - 'mapbox': Mapbox subplot for scattermapbox
+    - 'mapbox': Mapbox subplot for scattermapbox (deprecated upstream; superseded by 'map')
+    - 'map': MapLibre subplot for scattermap, choroplethmap, densitymap
+    - 'smith': Smith chart subplot for scattersmith
     - 'domain': Subplot type for traces that are individually positioned. pie, parcoords, parcats, etc.
     - Trace type: Put the name of the type of trace here and we will determine the appropriate kind of subplot
 

@@ -220,8 +220,23 @@ function _init_subplot_domain!(domain::NamedTuple{(:x, :y)})
     )]
 end
 
+# trace types removed from the plot-schema.json bundled from plotly.js >= 3 (the
+# Mapbox-GL-based traces, superseded by the MapLibre-based :map-suffixed ones, and a
+# couple of cartesian traces dropped outright), kept here so callers using these
+# names still resolve to the correct subplot kind instead of a schema KeyError
+const _LEGACY_TRACE_SUBPLOT_KINDS = Dict(
+    :choroplethmapbox => "mapbox",
+    :densitymapbox => "mapbox",
+    :scattermapbox => "mapbox",
+    :heatmapgl => "xy",
+    :pointcloud => "xy",
+)
+
 function get_subplotkind_from_trace_type(k::Symbol)
     schema = get_plotschema()
+    haskey(schema.traces, k) || return get(_LEGACY_TRACE_SUBPLOT_KINDS, k) do
+        @error "Unknown subplot type for trace $k. Please open issue"
+    end
 
     trace_attrs = schema.traces[k][:attributes]
     trace_attr_names = keys(trace_attrs)

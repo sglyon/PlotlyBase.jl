@@ -34,7 +34,7 @@ _symbol_dict(x) = x
 # tuple eltype value by value, which compiles a dozen `collect_to!` and
 # `setindex_widen_up_to` methods for each input dict type.
 function _symbol_dict(d::AbstractDict)
-    out = Dict{Symbol,Any}()
+    out = JSON.Object{Symbol,Any}()
     for (k, v) in d
         out[Symbol(k)] = _symbol_dict(v)
     end
@@ -49,7 +49,7 @@ mutable struct PlotlyAttribute{T <: AbstractDict{Symbol,Any}} <: AbstractPlotlyA
     fields::T
 end
 
-const _ATTR = PlotlyAttribute{Dict{Symbol,Any}}
+const _ATTR = PlotlyAttribute{JSON.Object{Symbol,Any}}
 
 struct Cycler
     vals::Vector
@@ -113,7 +113,7 @@ include("colors.jl")
 
 # Set some defaults for constructing `Plot`s
 function Plot(;config::PlotConfig=PlotConfig())
-    Plot(GenericTrace{Dict{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config)
+    Plot(GenericTrace{JSON.Object{Symbol,Any}}[], Layout(), PlotlyFrame[], uuid4(), config)
 end
 
 function Plot(data::AbstractVector{<:AbstractTrace}, layout=Layout(), frames::AbstractVector{<:PlotlyFrame}=PlotlyFrame[];

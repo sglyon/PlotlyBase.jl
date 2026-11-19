@@ -111,9 +111,9 @@ function to_html(
         url = ismissing(p.config.plotlyServerURL) ? "https://plot.ly" : p.config.plotlyServerURL
         base_url_line = "window.PLOTLYENV.BASE_URL = '$url';\n"
     else
-        pop!(jconfig, :plotlyServerURL, missing)
-        pop!(jconfig, :linkText, missing)
-        pop!(jconfig, :showLink, missing)
+        _pop!(jconfig, :plotlyServerURL, missing)
+        _pop!(jconfig, :linkText, missing)
+        _pop!(jconfig, :showLink, missing)
     end
 
     # build script body

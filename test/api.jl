@@ -1,3 +1,5 @@
+using PlotlyBase.JSON
+
 function fresh_data()
     t1 = scatter(;y=[1, 2, 3])
     t2 = scatter(;y=[10, 20, 30])
@@ -33,7 +35,7 @@ end
         PlotlyBase._update_fields(o, 1, Dict{Symbol,Any}(:fuzzy_wuzzy => "Bear");
                                 fuzzy_wuzzy="?")
         @test o.fields[:fuzzy_wuzzy] == "Bear"
-        @test isa(o.fields[:fuzzy], Dict)
+        @test isa(o.fields[:fuzzy], JSON.Object)
         @test o["fuzzy.wuzzy"] == "?"
     end
 
@@ -314,8 +316,8 @@ end
         @test p1.data == p2.data
     end
     @test p1.data[1] isa GenericTrace
-    @test p1.data[1].marker isa Dict
-    @test p1.data[1].marker_line isa Dict
+    @test p1.data[1].marker isa JSON.Object
+    @test p1.data[1].marker_line isa JSON.Object
     @test p1.data[1].marker_line_width isa Number
 
 end
