@@ -20,13 +20,8 @@ jobs:
         julia-arch: [default]
         os: [ubuntu-latest, windows-latest, macOS-latest]
         include:
-          # smoke-test the minimum supported Julia version (see `julia` compat
-          # in Project.toml) on a single OS rather than the full matrix
-          # Julia 1.9 binaries fail to load libopenlibm.so on ubuntu-latest (26.04,
-          # "cannot enable executable stack"), so pin this job to an older runner
-          - julia-version: "1.9"
-            julia-arch: default
-            os: ubuntu-22.04
+          # the minimum supported Julia version (see `julia` compat in Project.toml)
+          # is part of the full matrix above
           - julia-version: "nightly"
             julia-arch: default
             os: ubuntu-latest
